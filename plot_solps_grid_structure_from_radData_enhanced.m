@@ -6,7 +6,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
     
     % 颜色定义 - 与图片保持一致
     color_core        = [144, 238, 144]/255;  % 绿色 - Core
-    color_main_SOL    = [255, 99, 71]/255;    % 红色 - Main SOL
+    color_main_SOL    = [255, 99, 71]/255;    % 橙红色(番茄色) - Main SOL
     color_inner_div   = [255, 0, 255]/255;    % 粉红色 - Inner Divertor
     color_outer_div   = [0, 0, 255]/255;      % 蓝色 - Outer Divertor
     color_PFR         = [230, 230, 250]/255;  % 浅紫色 - PFR（仅在图例中使用）
@@ -24,7 +24,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
         radData = all_radiationData{i};
         dirPath = radData.dirName;
 
-        fprintf('处理算例: %s\n', dirPath);
+        fprintf('Processing case: %s\n', dirPath);
 
         % 获取父目录和祖父目录
         parentDir = fileparts(dirPath);
@@ -57,7 +57,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
                 for p_ = 1:length(possible_files_structure)
                     if exist(possible_files_structure{p_}, 'file')
                         filePath = possible_files_structure{p_};
-                        fprintf('找到%s: %s\n', fileName, filePath);
+                        fprintf('Found %s: %s\n', fileName, filePath);
                         break;
                     end
                 end
@@ -70,7 +70,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
                 for p_ = 1:length(possible_files_other)
                     if exist(possible_files_other{p_}, 'file')
                         filePath = possible_files_other{p_};
-                        fprintf('找到%s: %s\n', fileName, filePath);
+                        fprintf('Found %s: %s\n', fileName, filePath);
                         break;
                     end
                 end
@@ -83,7 +83,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
                 for p_ = 1:length(possible_files_other)
                     if exist(possible_files_other{p_}, 'file')
                         filePath = possible_files_other{p_};
-                        fprintf('找到%s: %s\n', fileName, filePath);
+                        fprintf('Found %s: %s\n', fileName, filePath);
                         break;
                     end
                 end
@@ -96,7 +96,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
                 for p_ = 1:length(possible_files_other)
                     if exist(possible_files_other{p_}, 'file')
                         filePath = possible_files_other{p_};
-                        fprintf('找到%s: %s\n', fileName, filePath);
+                        fprintf('Found %s: %s\n', fileName, filePath);
                         break;
                     end
                 end
@@ -109,7 +109,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
                 for p_ = 1:length(possible_files_other)
                     if exist(possible_files_other{p_}, 'file')
                         filePath = possible_files_other{p_};
-                        fprintf('找到%s: %s\n', fileName, filePath);
+                        fprintf('Found %s: %s\n', fileName, filePath);
                         break;
                     end
                 end
@@ -117,7 +117,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
             end
 
             if isempty(filePath)
-                fprintf('警告: 在%s中未找到%s. 跳过此算例的绘图。\n', dirPath, fileName);
+                fprintf('Warning: %s not found in %s. Skipping this case.\n', fileName, dirPath);
                 found_all_files = false;
                 break;
             end
@@ -133,7 +133,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
             gmtry = read_b2fgmtry(gmtry_file);
             triangle = read_triangle_mesh(fort33, fort34, fort35);
         catch ME
-            fprintf('读取%s中的文件时出错: %s\n', dirPath, ME.message);
+            fprintf('Error reading files in %s: %s\n', dirPath, ME.message);
             continue;
         end
 
@@ -175,7 +175,12 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
         
         % 绘制分离面
         for i_sep = 1:98
-            j_sep = 14; % 分离面
+            % 分离面索引换算说明（为何原始网格使用 14 = 12+2）：
+            % - 计算网格（去除首尾各1层保护单元）中，分离面位于 iy=12 与 13 之间
+            % - 映射回原始网格（含两侧各1层保护单元），分离面位于 13(=12+1) 与 14 之间
+            % - 若涉及 fna_mdf 的径向通量，其定义在“当前网格与其下方网格的交界面”上，
+            %   因此穿过分离面的通量对应原始网格 j=14（即 12+2），并非“额外加两层保护单元”
+            j_sep = 14; % 分离面（原始网格 j=14）
             rco = [gmtry.crx(i_sep,j_sep,1), gmtry.crx(i_sep,j_sep,2)];
             zco = [gmtry.cry(i_sep,j_sep,1), gmtry.cry(i_sep,j_sep,2)];
             plot(rco, zco, 'Color', color_separatrix, 'LineWidth', 2);
@@ -208,14 +213,7 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
         xlabel('$R$ (m)', 'FontName', 'Times New Roman', 'FontSize', 24, 'Interpreter', 'latex');
         ylabel('$Z$ (m)', 'FontName', 'Times New Roman', 'FontSize', 24, 'Interpreter', 'latex');
         
-        % 创建图例
-        h_legend = zeros(4, 1);
-        h_legend(1) = fill(NaN, NaN, color_inner_div, 'EdgeColor', 'none');
-        h_legend(2) = fill(NaN, NaN, color_main_SOL, 'EdgeColor', 'none');
-        h_legend(3) = fill(NaN, NaN, color_outer_div, 'EdgeColor', 'none');
-        h_legend(4) = fill(NaN, NaN, color_core, 'EdgeColor', 'none');
-        
-        legend(h_legend, {'Inner Div.', 'Main SOL', 'Outer Div.', 'Core'}, 'FontName', 'Times New Roman', 'FontSize', 20, 'Location', 'northeast');
+        % 图例已移除 - 相关信息直接显示在图中
         
         % 修改刻度字体大小
         set(gca, 'FontSize', 22);
@@ -230,129 +228,168 @@ function plot_solps_grid_structure_from_radData_enhanced(all_radiationData)
         [~, lastDirName, ~] = fileparts(radData.dirName);
         filenameFIG_physical = fullfile(pwd, sprintf('SOLPS_physical_grid_%s_%s.fig', currentDateTime, lastDirName));
         saveas(gcf, filenameFIG_physical, 'fig');
-        fprintf('物理网格图已保存至: %s\n', filenameFIG_physical);
+        fprintf('Physical grid plot saved to: %s\n', filenameFIG_physical);
         
         % ------------------------------- 绘制计算网格区域划分图 -------------------------------
         figure('Position', [150, 150, 1200, 800], 'Color', 'white');  % 增加高度以容纳所有内容
         
         % 创建计算网格区域划分图
-        nx = 96;  % SOLPS的ix坐标维度
-        ny = 26;  % SOLPS的iy坐标维度
-        
+        nx = 96;  % SOLPS的ix坐标维度（网格单元数）
+        ny = 26;  % SOLPS的iy坐标维度（网格单元数）
+
         % 设置白色背景
         set(gcf, 'Color', 'white');
         set(gca, 'Color', 'white');
-        
+
         % 调整图形边距，为标签留出更多空间
         set(gca, 'Position', [0.1 0.1 0.8 0.8]);
-        
-        % 区域边界定义
-        inner_div_end = 24;     % 内偏滤器结束位置
-        outer_div_start = 73;   % 外偏滤器开始位置
-        separatrix_line = 12;   % 分离面位置（13和14之间）
-        
-        % 特殊位置 - 保持原有位置
+
+        % 区域边界定义（按网格单元）
+        outer_div_end = 24;     % 外偏滤器结束位置 (网格单元1-24，共24列)
+        inner_div_start = 73;   % 内偏滤器开始位置 (网格单元73-96，共24列)
+        separatrix_line = 12;   % 分离面位置（网格单元12和13之间）
+
+        % 特殊位置（按网格单元）
         omp_pos = 41;           % OMP位置
         imp_pos = 58;           % IMP位置
         ode_pos = 24;           % ODE位置
         ide_pos = 73;           % IDE位置
-        
-        % 绘制网格线 - 不同区域使用不同颜色
+
+        % 创建区域矩阵 - 使用网格方式
+        grid_matrix = zeros(ny, nx);  % 注意：矩阵是(行,列)，对应(y,x)
+
+        % 定义区域代码
+        OUTER_DIV = 1;   % 外偏滤器
+        CORE = 2;        % 核心
+        MAIN_SOL = 3;    % 主SOL
+        INNER_DIV = 4;   % 内偏滤器
+
+        % 填充区域矩阵
+        for i = 1:nx
+            for j = 1:ny
+                if i <= outer_div_end  % 外偏滤器区域 (1-24列)
+                    grid_matrix(j, i) = OUTER_DIV;
+                elseif i >= inner_div_start  % 内偏滤器区域 (73-96列)
+                    grid_matrix(j, i) = INNER_DIV;
+                else  % 中间区域 (25-72列)
+                    if j <= separatrix_line  % 核心区域 (1-12行)
+                        grid_matrix(j, i) = CORE;
+                    else  % 主SOL区域 (13-26行)
+                        grid_matrix(j, i) = MAIN_SOL;
+                    end
+                end
+            end
+        end
+
+        % 定义颜色映射 - 与物理网格颜色保持一致
+        colormap_custom = [
+            color_outer_div;    % 蓝色 - Outer Divertor
+            color_core;         % 绿色 - Core
+            color_main_SOL;     % 橙红色 - Main SOL
+            color_inner_div     % 粉红色 - Inner Divertor
+        ];
+
+        % 设置白色背景，不使用颜色填充
+        % imagesc(1:nx, 1:ny, grid_matrix);  % 注释掉颜色填充
+        % colormap(colormap_custom);         % 注释掉颜色映射
         hold on;
         
-        % 绘制极向网格线（垂直线）
-        for i = 1:nx
-            if i <= inner_div_end  % 内偏滤器区域
-                plot([i i], [1 ny], 'm-', 'LineWidth', 0.5);  % 粉色线
-            elseif i >= outer_div_start  % 外偏滤器区域
-                plot([i i], [1 ny], 'b-', 'LineWidth', 0.5);  % 蓝色线
-            else  % 中间区域 - 分Core和SOL两段绘制
-                % Core区域部分用绿色
-                plot([i i], [1 separatrix_line+1], 'g-', 'LineWidth', 0.5);  % 绿色线
-                % SOL区域部分用红色
-                plot([i i], [separatrix_line+1 ny], 'r-', 'LineWidth', 0.5);  % 红色线
+        % 添加带颜色的网格线 - 根据区域使用不同颜色
+        % 垂直网格线 - 按区域分段绘制
+        for i = 0.5:1:(nx+0.5)
+            if i <= outer_div_end + 0.5  % 外偏滤器区域
+                % 整条线都使用外偏滤器颜色
+                plot([i i], [0.5 ny+0.5], 'Color', color_outer_div, 'LineWidth', 1.0);
+            elseif i >= inner_div_start - 0.5  % 内偏滤器区域
+                % 整条线都使用内偏滤器颜色
+                plot([i i], [0.5 ny+0.5], 'Color', color_inner_div, 'LineWidth', 1.0);
+            else  % 中间区域（核心和主SOL）- 分段绘制
+                % 核心区域段 (1-12行)
+                plot([i i], [0.5 separatrix_line+0.5], 'Color', color_core, 'LineWidth', 1.0);
+                % 主SOL区域段 (13-26行)
+                plot([i i], [separatrix_line+0.5 ny+0.5], 'Color', color_main_SOL, 'LineWidth', 1.0);
             end
         end
-        
-        % 绘制径向网格线（水平线）
-        for j = 1:ny
-            if j <= separatrix_line+1  % 核心和PFR区域
-                for i = 1:nx
-                    if (i > inner_div_end && i < outer_div_start)  % 核心区域
-                        x_start = max(i, inner_div_end+1);
-                        x_end = min(i+1, outer_div_start);
-                        plot([x_start x_end], [j j], 'g-', 'LineWidth', 0.5);  % 绿色线
-                    elseif i <= inner_div_end  % 内PFR区域
-                        plot([i i+1], [j j], 'm-', 'LineWidth', 0.5);  % 粉色线
-                    else  % 外PFR区域
-                        plot([i i+1], [j j], 'b-', 'LineWidth', 0.5);  % 蓝色线
-                    end
-                end
-            else  % SOL区域
-                for i = 1:nx
-                    if (i > inner_div_end && i < outer_div_start)  % 主SOL区域
-                        x_start = max(i, inner_div_end+1);
-                        x_end = min(i+1, outer_div_start);
-                        plot([x_start x_end], [j j], 'r-', 'LineWidth', 0.5);  % 红色线
-                    elseif i <= inner_div_end  % 内偏滤器区域
-                        plot([i i+1], [j j], 'm-', 'LineWidth', 0.5);  % 粉色线
-                    else  % 外偏滤器区域
-                        plot([i i+1], [j j], 'b-', 'LineWidth', 0.5);  % 蓝色线
-                    end
-                end
+
+        % 水平网格线 - 按区域分段绘制
+        for j = 0.5:1:(ny+0.5)
+            % 外偏滤器区域段 (1-24列) - 整个区域都使用外偏滤器颜色
+            plot([0.5 outer_div_end+0.5], [j j], 'Color', color_outer_div, 'LineWidth', 1.0);
+
+            % 中间区域段 (25-72列) - 根据径向位置区分核心和主SOL
+            if j <= separatrix_line + 0.5  % 核心区域
+                line_color = color_core;
+            else  % 主SOL区域
+                line_color = color_main_SOL;
             end
+            plot([outer_div_end+0.5 inner_div_start-0.5], [j j], 'Color', line_color, 'LineWidth', 1.0);
+
+            % 内偏滤器区域段 (73-96列) - 整个区域都使用内偏滤器颜色
+            plot([inner_div_start-0.5 nx+0.5], [j j], 'Color', color_inner_div, 'LineWidth', 1.0);
         end
-        
+
         % 强调特定位置
-        % 分离面 - 黑色实线
-        plot([1 nx], [separatrix_line+1 separatrix_line+1], 'k-', 'LineWidth', 2);
-        text(50, separatrix_line+2, 'Separatrix', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
-        
+        % 分离面 - 黑色实线（在第12行和第13行之间）
+        plot([0.5 nx+0.5], [separatrix_line+0.5 separatrix_line+0.5], 'k-', 'LineWidth', 3);
+        text(50, separatrix_line+2, 'Separatrix', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
+             'BackgroundColor', 'white', 'EdgeColor', 'black', 'LineWidth', 0.5, 'Margin', 2);
+
         % 垂直分隔线 - 黑色虚线
-        plot([inner_div_end+1 inner_div_end+1], [1 ny], 'k--', 'LineWidth', 1.5);
-        plot([outer_div_start outer_div_start], [1 ny], 'k--', 'LineWidth', 1.5);
-        plot([omp_pos omp_pos], [1 ny], 'k--', 'LineWidth', 1.5);
-        plot([imp_pos imp_pos], [1 ny], 'k--', 'LineWidth', 1.5);
+        plot([outer_div_end+0.5 outer_div_end+0.5], [0.5 ny+0.5], 'k--', 'LineWidth', 2);
+        plot([inner_div_start-0.5 inner_div_start-0.5], [0.5 ny+0.5], 'k--', 'LineWidth', 2);
+        plot([omp_pos+0.5 omp_pos+0.5], [0.5 ny+0.5], 'k--', 'LineWidth', 2);
+        plot([imp_pos+0.5 imp_pos+0.5], [0.5 ny+0.5], 'k--', 'LineWidth', 2);
         
-        % 添加区域标签
-        text(50, 7, 'Core', 'FontSize', 36, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
-        text(50, 21, 'SOL', 'FontSize', 36, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
-        text(12, 7, 'PFR', 'FontSize', 36, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
-        text(86, 7, 'PFR', 'FontSize', 36, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
-        
-        % 添加特殊位置标记
+        % 添加区域标签 - 使用白色背景和边框确保文字清晰可见
+        text(50, 7, 'Core', 'FontSize', 36, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
+             'BackgroundColor', 'white', 'EdgeColor', 'black', 'LineWidth', 0.5, 'Margin', 2);
+        text(50, 21, 'Main SOL', 'FontSize', 36, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
+             'BackgroundColor', 'white', 'EdgeColor', 'black', 'LineWidth', 0.5, 'Margin', 2);
+        text(12, 7, 'PFR', 'FontSize', 36, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
+             'BackgroundColor', 'white', 'EdgeColor', 'black', 'LineWidth', 0.5, 'Margin', 2);
+        text(86, 7, 'PFR', 'FontSize', 36, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
+             'BackgroundColor', 'white', 'EdgeColor', 'black', 'LineWidth', 0.5, 'Margin', 2);
+
+        % 添加偏滤器SOL区域标签（在PFR上方，径向网格13-26区域）
+        text(12, 21, 'Outer Div. SOL', 'FontSize', 28, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
+             'BackgroundColor', 'white', 'EdgeColor', 'black', 'LineWidth', 0.5, 'Margin', 2);
+        text(86, 21, 'Inner Div. SOL', 'FontSize', 28, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
+             'BackgroundColor', 'white', 'EdgeColor', 'black', 'LineWidth', 0.5, 'Margin', 2);
+
+        % 添加特殊位置标记 - 这些标记位于图形上方，不与网格重叠，因此不需要背景
         text(1, ny+2, 'OT', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
-        text(inner_div_end, ny+2, 'ODE', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
+        text(outer_div_end, ny+2, 'ODE', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
         text(omp_pos, ny+2, 'OMP', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
         text(imp_pos, ny+2, 'IMP', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
-        text(outer_div_start, ny+2, 'IDE', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
+        text(inner_div_start, ny+2, 'IDE', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
         text(nx, ny+2, 'IT', 'FontSize', 32, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
         
         % 添加标签
         xlabel('$Poloidal$', 'FontName', 'Times New Roman', 'FontSize', 32, 'Interpreter', 'latex');
         ylabel('$Radial$', 'FontName', 'Times New Roman', 'FontSize', 32, 'Interpreter', 'latex');
         
-        % 创建图例
-        h_legend = zeros(4, 1);
-        h_legend(1) = plot(NaN, NaN, 'm-', 'LineWidth', 2);
-        h_legend(2) = plot(NaN, NaN, 'r-', 'LineWidth', 2);
-        h_legend(3) = plot(NaN, NaN, 'b-', 'LineWidth', 2);
-        h_legend(4) = plot(NaN, NaN, 'g-', 'LineWidth', 2);
-        
-        legend(h_legend, {'Inner Div.', 'Main SOL', 'Outer Div.', 'Core'}, 'FontName', 'Times New Roman', 'FontSize', 36, 'Location', 'northeast');
+        % 图例已移除 - 相关信息直接显示在图中
         
         % 修改刻度字体大小
         set(gca, 'FontSize', 30);
         
         % 调整轴范围和比例
-        axis([1 nx 1 ny]);
+        axis([0.5 nx+0.5 0.5 ny+0.5]);
         set(gca, 'YDir', 'normal'); % 确保y轴向上
         set(gca, 'XTick', [1, 24, 41, 58, 73, 96]);
         set(gca, 'YTick', [1, 12, 26]);
+
+        % 确保所有文字对象都在最上层显示
+        % 获取当前坐标轴中的所有文字对象
+        text_objects = findobj(gca, 'Type', 'text');
+        % 将所有文字对象移到最上层
+        if ~isempty(text_objects)
+            uistack(text_objects, 'top');
+        end
         
         % 保存计算网格图
         filenameFIG_computational = fullfile(pwd, sprintf('SOLPS_computational_grid_%s_%s.fig', currentDateTime, lastDirName));
         saveas(gcf, filenameFIG_computational, 'fig');
-        fprintf('计算网格图已保存至: %s\n', filenameFIG_computational);
+        fprintf('Computational grid plot saved to: %s\n', filenameFIG_computational);
     end
 end

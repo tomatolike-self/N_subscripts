@@ -14,10 +14,9 @@ function plot_potential_on_physical_grid(all_radiationData, domain)
     %
     % 输出图形：
     %   1. 2D电势分布图 + 内外偏滤器极向位置线条（内偏滤器实线，外偏滤器虚线）
+    %      - 使用渐变式颜色方案：外偏滤器蓝色系递进，内偏滤器红色系递进
     %   2. 径向电势分布剖面图（内偏滤器实线 + 外偏滤器虚线）
-    %   3. 分离面内外网格的极向电势分布对比图（双子图）：
-    %      - 上子图：分离面内网格(径向网格13)的极向电势分布，突出显示芯部区域(26-73)
-    %      - 下子图：分离面外网格(径向网格14)的极向电势分布，突出显示主SOL区域(26-73)
+    %      - 双子图：上子图为外偏滤器区域，下子图为内偏滤器区域
     %
     % 依赖函数：
     %   - surfplot.m
@@ -30,7 +29,7 @@ function plot_potential_on_physical_grid(all_radiationData, domain)
     set(0,'DefaultAxesFontName','Times New Roman');
     set(0,'DefaultTextFontName','Times New Roman');
 
-    fontSize = 32;          % 统一字体大小
+    fontSize = 48;          % 统一字体大小（大幅增加）
 
     %% ======================== 遍历所有算例并绘图 ============================
     totalDirs = length(all_radiationData);
@@ -71,23 +70,28 @@ function plot_potential_on_physical_grid(all_radiationData, domain)
         % 统一用 Label 属性设置（确保 LaTeX 正确渲染）
         h_colorbar.Label.String = '$\phi$ (V)';   % 若想显示词语可改成 '$\mathrm{Potential}~(V)$'
         h_colorbar.Label.Interpreter = 'latex';
-        h_colorbar.Label.FontSize = fontSize-2;
+        h_colorbar.Label.FontSize = fontSize+4;  % 大幅增加colorbar标签字体
         h_colorbar.Label.FontWeight = 'bold';
         h_colorbar.Label.FontName = 'Times New Roman';
-        set(h_colorbar, 'FontSize', fontSize-6, 'LineWidth', 1.5, 'FontName','Times New Roman');
+        set(h_colorbar, 'FontSize', fontSize-4, 'LineWidth', 2.0, 'FontName','Times New Roman');
+        % 确保colorbar刻度数字使用Times New Roman字体
+        set(h_colorbar, 'TickLabelInterpreter', 'latex');
 
         % (2.3) 叠加分离器/结构
         plot3sep(gmtry_tmp, 'color','w','LineStyle','--','LineWidth',1.5);
 
         % (2.4) 设置标题及坐标轴标签 (恢复 LaTeX)
-        xlabel('$R$ (m)', 'FontSize', fontSize, 'FontName','Times New Roman','Interpreter','latex');
-        ylabel('$Z$ (m)', 'FontSize', fontSize, 'FontName','Times New Roman','Interpreter','latex');
+        xlabel('$R$ (m)', 'FontSize', fontSize+8, 'FontName','Times New Roman','Interpreter','latex');
+        ylabel('$Z$ (m)', 'FontSize', fontSize+8, 'FontName','Times New Roman','Interpreter','latex');
 
         % (2.5) 设置坐标轴属性
         axis equal tight;
         box on;
         grid on;
-        set(gca, 'FontSize', fontSize, 'FontName', 'Times New Roman', 'LineWidth', 1.5);
+        set(gca, 'FontSize', fontSize+4, 'FontName', 'Times New Roman', 'LineWidth', 2.0);
+        % 确保坐标轴刻度数字使用Times New Roman字体
+        set(gca, 'XTickLabelMode', 'manual', 'YTickLabelMode', 'manual');
+        set(gca, 'TickLabelInterpreter', 'latex');
 
         % ------------------- 3) 根据 domain 裁剪绘制区域 -------------------
         if domain ~= 0
@@ -142,39 +146,49 @@ function plot_potential_on_physical_grid(all_radiationData, domain)
         % 计算网格中心坐标
         [rCenter, zCenter] = computeCellCentersFromCorners(gmtry_tmp.crx, gmtry_tmp.cry);
 
-        % 合并所有极向索引用于颜色分配
-        all_poloidal_indices = [poloidal_indices_inner, poloidal_indices_outer];
-        total_lines = length(all_poloidal_indices);
+        % 定义与fig2统一的渐变式颜色方案
+        % 外偏滤器区域 [7, 19, 24, 25] - 从亮蓝色(7)向暗蓝/黑色(25)过渡
+        outer_colors = [0.0, 0.6, 1.0; 0.0, 0.4, 0.8; 0.0, 0.25, 0.5; 0.0, 0.1, 0.2];
+        % 内偏滤器区域 [74, 76, 80, 92] - 从暗红/黑色(74)向亮红色(92)过渡
+        inner_colors = [0.2, 0.0, 0.0; 0.5, 0.0, 0.0; 0.8, 0.0, 0.0; 1.0, 0.2, 0.2];
 
-        if total_lines > 0
-            % 为所有极向位置分配颜色
-            colors = lines(total_lines);
-            line_count = 0;
+        % 叠加内偏滤器固定极向位置（沿径向方向的线，使用实线）
+        for k = 1:length(poloidal_indices_inner)
+            ix_idx = poloidal_indices_inner(k);
+            if ix_idx <= nxd
+                % 使用网格中心坐标绘制固定极向位置沿径向方向的线
+                R_line = rCenter(ix_idx, :);
+                Z_line = zCenter(ix_idx, :);
 
-            % 叠加内偏滤器固定极向位置（沿径向方向的线，使用实线）
-            for k = 1:length(poloidal_indices_inner)
-                ix_idx = poloidal_indices_inner(k);
-                if ix_idx <= nxd
-                    line_count = line_count + 1;
-                    % 使用网格中心坐标绘制固定极向位置沿径向方向的线
-                    R_line = rCenter(ix_idx, :);
-                    Z_line = zCenter(ix_idx, :);
-                    plot(R_line, Z_line, 'Color', colors(line_count,:), 'LineWidth', 3, ...
-                         'LineStyle', '-');  % 内偏滤器使用实线
+                % 内偏滤器颜色递进（92是最外侧亮红色，向内侧74逐渐变暗）
+                if k <= size(inner_colors, 1)
+                    color_to_use = inner_colors(k, :);
+                else
+                    color_to_use = [1.0, 0.2, 0.2]; % 默认亮红色
                 end
+
+                plot(R_line, Z_line, 'Color', color_to_use, 'LineWidth', 3, ...
+                     'LineStyle', '-');  % 内偏滤器使用实线
             end
+        end
 
-            % 叠加外偏滤器固定极向位置（沿径向方向的线，使用虚线）
-            for k = 1:length(poloidal_indices_outer)
-                ix_idx = poloidal_indices_outer(k);
-                if ix_idx <= nxd
-                    line_count = line_count + 1;
-                    % 使用网格中心坐标绘制固定极向位置沿径向方向的线
-                    R_line = rCenter(ix_idx, :);
-                    Z_line = zCenter(ix_idx, :);
-                    plot(R_line, Z_line, 'Color', colors(line_count,:), 'LineWidth', 3, ...
-                         'LineStyle', '--');  % 外偏滤器使用虚线
+        % 叠加外偏滤器固定极向位置（沿径向方向的线，使用虚线）
+        for k = 1:length(poloidal_indices_outer)
+            ix_idx = poloidal_indices_outer(k);
+            if ix_idx <= nxd
+                % 使用网格中心坐标绘制固定极向位置沿径向方向的线
+                R_line = rCenter(ix_idx, :);
+                Z_line = zCenter(ix_idx, :);
+
+                % 外偏滤器颜色递进
+                if k <= size(outer_colors, 1)
+                    color_to_use = outer_colors(k, :);
+                else
+                    color_to_use = [0.0, 0.6, 1.0]; % 默认亮蓝色
                 end
+
+                plot(R_line, Z_line, 'Color', color_to_use, 'LineWidth', 3, ...
+                     'LineStyle', '--');  % 外偏滤器使用虚线
             end
         end
 
@@ -184,32 +198,31 @@ function plot_potential_on_physical_grid(all_radiationData, domain)
         hold off;
 
         %% =========================================================================
-        %   新增功能1: 创建径向电势分布剖面图（内偏滤器+外偏滤器）
+        %   新增功能1: 创建径向电势分布剖面图（内偏滤器+外偏滤器双子图）
         % =========================================================================
         try
             % 检查是否有有效的极向索引
             if ~isempty(poloidal_indices_inner) || ~isempty(poloidal_indices_outer)
-                % 创建径向电势分布剖面图
+                % 创建径向电势分布剖面图（双子图）
                 figName_radial = sprintf('Radial Potential Distribution (Inner & Outer Divertor): %s', currentLabel);
                 figure('Name', figName_radial, 'NumberTitle','off', 'Color','w',...
-                       'Units','pixels','Position',[200 100 1400 900]);
-                applyTimesFont(gcf, fontSize-2);
+                       'Units','pixels','Position',[200 100 1600 1200]);
+                applyTimesFont(gcf, fontSize);
 
-                hold on;
+                % 定义颜色方案
+                % 外偏滤器区域 [7, 19, 24, 25] - 从亮蓝色(7)向暗蓝/黑色(25)过渡
+                outer_colors = [0.0, 0.6, 1.0; 0.0, 0.4, 0.8; 0.0, 0.25, 0.5; 0.0, 0.1, 0.2];
+                % 内偏滤器区域 [74, 76, 80, 92] - 从暗红/黑色(74)向亮红色(92)过渡
+                inner_colors = [0.2, 0.0, 0.0; 0.5, 0.0, 0.0; 0.8, 0.0, 0.0; 1.0, 0.2, 0.2];
 
-                % 径向距离坐标改为按每条曲线分别计算（见下方循环）
-                % 原因：不同极向位置 ix 的 hy 可能不同，且分离面位于13-14号网格交界
+                % 计算统一的径向坐标范围和Y轴范围
+                all_y_relative = [];
+                all_potentials = [];
 
-                % 统一配色（内+外）
-                inner_count = length(poloidal_indices_inner);
-                outer_count = length(poloidal_indices_outer);
-                colors_combined = lines(inner_count + outer_count);
-
-                % 为内偏滤器极向位置绘制径向电势剖面（逐条计算径向坐标）
-                for k = 1:inner_count
+                % 收集所有数据以确定统一的坐标范围
+                for k = 1:length(poloidal_indices_inner)
                     ix_idx = poloidal_indices_inner(k);
                     if ix_idx <= nxd
-                        % 径向几何长度（该极向位置）
                         radial_lengths_k = gmtry_tmp.hy(ix_idx, :);
                         y_edge_k = zeros(length(radial_lengths_k)+1, 1);
                         for jPos = 1:length(radial_lengths_k)
@@ -217,29 +230,55 @@ function plot_potential_on_physical_grid(all_radiationData, domain)
                         end
                         y_center_k = 0.5 * (y_edge_k(1:end-1) + y_edge_k(2:end));
 
-                        % 分离面位于 13 与 14 号网格交界：13号中心 + 0.5*hy(ix,13) = y_edge(14)
                         if length(y_center_k) >= 14
                             y_sep_k = y_center_k(13) + 0.5 * radial_lengths_k(13);
                         else
                             y_sep_k = y_center_k(1);
-                            fprintf('Warning: Not enough radial cells to locate separatrix (need >=14) for case %s at ix=%d. Using first point as reference.\n', currentLabel, ix_idx);
                         end
 
-                        % 相对分离面的径向坐标（cm）
                         y_relative_k = (y_center_k - y_sep_k) * 100;
-
-                        % 电势径向剖面
                         potential_profile = potential_data(ix_idx, :);
 
-                        % 绘制（内偏滤器用实线）
-                        plot(y_relative_k, potential_profile, 'Color', colors_combined(k,:), ...
-                             'LineWidth', 2.5, 'LineStyle', '-', ...
-                             'DisplayName', sprintf('ix=%d (Inner)', ix_idx));
+                        all_y_relative = [all_y_relative; y_relative_k(:)];
+                        all_potentials = [all_potentials; potential_profile(:)];
                     end
                 end
 
-                % 为外偏滤器极向位置绘制径向电势剖面（逐条计算径向坐标）
-                for k = 1:outer_count
+                for k = 1:length(poloidal_indices_outer)
+                    ix_idx = poloidal_indices_outer(k);
+                    if ix_idx <= nxd
+                        radial_lengths_k = gmtry_tmp.hy(ix_idx, :);
+                        y_edge_k = zeros(length(radial_lengths_k)+1, 1);
+                        for jPos = 1:length(radial_lengths_k)
+                            y_edge_k(jPos+1) = y_edge_k(jPos) + radial_lengths_k(jPos);
+                        end
+                        y_center_k = 0.5 * (y_edge_k(1:end-1) + y_edge_k(2:end));
+
+                        if length(y_center_k) >= 14
+                            y_sep_k = y_center_k(13) + 0.5 * radial_lengths_k(13);
+                        else
+                            y_sep_k = y_center_k(1);
+                        end
+
+                        y_relative_k = (y_center_k - y_sep_k) * 100;
+                        potential_profile = potential_data(ix_idx, :);
+
+                        all_y_relative = [all_y_relative; y_relative_k(:)];
+                        all_potentials = [all_potentials; potential_profile(:)];
+                    end
+                end
+
+                % 计算统一的X轴坐标范围
+                x_min = floor(min(all_y_relative));
+                x_max = ceil(max(all_y_relative));
+                x_range = [x_min, x_max];
+
+                % ================= 子图1: 外偏滤器区域径向电势分布 =================
+                subplot(2, 1, 1);
+                hold on;
+
+                % 为外偏滤器极向位置绘制径向电势剖面
+                for k = 1:length(poloidal_indices_outer)
                     ix_idx = poloidal_indices_outer(k);
                     if ix_idx <= nxd
                         % 径向几何长度（该极向位置）
@@ -250,12 +289,11 @@ function plot_potential_on_physical_grid(all_radiationData, domain)
                         end
                         y_center_k = 0.5 * (y_edge_k(1:end-1) + y_edge_k(2:end));
 
-                        % 分离面位于 13 与 14 号网格交界：13号中心 + 0.5*hy(ix,13) = y_edge(14)
+                        % 分离面位于 13 与 14 号网格交界
                         if length(y_center_k) >= 14
                             y_sep_k = y_center_k(13) + 0.5 * radial_lengths_k(13);
                         else
                             y_sep_k = y_center_k(1);
-                            fprintf('Warning: Not enough radial cells to locate separatrix (need >=14) for case %s at ix=%d. Using first point as reference.\n', currentLabel, ix_idx);
                         end
 
                         % 相对分离面的径向坐标（cm）
@@ -264,192 +302,122 @@ function plot_potential_on_physical_grid(all_radiationData, domain)
                         % 电势径向剖面
                         potential_profile = potential_data(ix_idx, :);
 
-                        % 绘制（外偏滤器用虚线）
-                        plot(y_relative_k, potential_profile, 'Color', colors_combined(inner_count + k,:), ...
+                        % 绘制（外偏滤器用虚线，颜色递进）
+                        if k <= size(outer_colors, 1)
+                            color_to_use = outer_colors(k, :);
+                        else
+                            color_to_use = [0.0, 0.6, 1.0]; % 默认亮蓝色
+                        end
+
+                        plot(y_relative_k, potential_profile, 'Color', color_to_use, ...
                              'LineWidth', 2.5, 'LineStyle', '--', ...
-                             'DisplayName', sprintf('ix=%d (Outer)', ix_idx));
+                             'DisplayName', sprintf('ix=%d', ix_idx));
                     end
                 end
 
-                % 标记分离面位置
-                ylims = ylim;
-                plot([0, 0], ylims, 'k-', 'LineWidth', 2, 'DisplayName', 'Separatrix');
+                % 标记分离面位置（使用虚线）
+                y_limits = ylim; % 获取当前Y轴范围
+                plot([0, 0], y_limits, 'k--', 'LineWidth', 2, 'DisplayName', 'Separatrix');
 
-                % 设置坐标轴和标签
-                xlabel('Radial distance from separatrix (cm)', 'FontSize', fontSize, 'FontName','Times New Roman');
-                ylabel('$\phi$ (V)', 'FontSize', fontSize, 'FontName','Times New Roman','Interpreter','latex');
+                % 设置坐标轴和标签（上子图不显示X轴标签，但显示Y轴刻度和数值）
+                % 隐藏X轴刻度标签，但保留刻度线
+                set(gca, 'XTickLabel', []);
+                % Y轴显示刻度和数值，但不设置Y轴标题
+                % 移除子图标题
+
+                % 设置X轴范围，Y轴使用MATLAB自动设置
+                xlim(x_range);
 
                 grid on;
                 box on;
-                legend('Location', 'best', 'FontSize', fontSize-8, 'FontName', 'Times New Roman');
+                % 移除图例
+                set(gca, 'FontSize', fontSize+4, 'FontName', 'Times New Roman', 'LineWidth', 2.0);
+                % 确保Y轴刻度数字正常显示，使用Times New Roman字体
+                set(gca, 'YTickLabelMode', 'auto');  % 确保Y轴标签自动显示
+                set(gca, 'TickLabelInterpreter', 'latex');
 
-                % 设置合适的显示范围 - 径向范围通常更大
-                xlim([-5, 15]);  % 径向范围，负值为核心侧，正值为SOL侧
+                % 调整子图纵横比：横轴长度约为纵轴长度的2倍
+                pbaspect([2, 1, 1]);  % 设置纵横比为2:1
+
+                hold off;
+
+                % ================= 子图2: 内偏滤器区域径向电势分布 =================
+                subplot(2, 1, 2);
+                hold on;
+
+                % 为内偏滤器极向位置绘制径向电势剖面
+                for k = 1:length(poloidal_indices_inner)
+                    ix_idx = poloidal_indices_inner(k);
+                    if ix_idx <= nxd
+                        % 径向几何长度（该极向位置）
+                        radial_lengths_k = gmtry_tmp.hy(ix_idx, :);
+                        y_edge_k = zeros(length(radial_lengths_k)+1, 1);
+                        for jPos = 1:length(radial_lengths_k)
+                            y_edge_k(jPos+1) = y_edge_k(jPos) + radial_lengths_k(jPos);
+                        end
+                        y_center_k = 0.5 * (y_edge_k(1:end-1) + y_edge_k(2:end));
+
+                        % 分离面位于 13 与 14 号网格交界
+                        if length(y_center_k) >= 14
+                            y_sep_k = y_center_k(13) + 0.5 * radial_lengths_k(13);
+                        else
+                            y_sep_k = y_center_k(1);
+                        end
+
+                        % 相对分离面的径向坐标（cm）
+                        y_relative_k = (y_center_k - y_sep_k) * 100;
+
+                        % 电势径向剖面
+                        potential_profile = potential_data(ix_idx, :);
+
+                        % 绘制（内偏滤器用实线，颜色递进）
+                        % 92是最外侧亮红色，向内侧74逐渐变暗
+                        if k <= size(inner_colors, 1)
+                            color_to_use = inner_colors(k, :);
+                        else
+                            color_to_use = [1.0, 0.2, 0.2]; % 默认亮红色
+                        end
+
+                        plot(y_relative_k, potential_profile, 'Color', color_to_use, ...
+                             'LineWidth', 2.5, 'LineStyle', '-', ...
+                             'DisplayName', sprintf('ix=%d', ix_idx));
+                    end
+                end
+
+                % 标记分离面位置（使用虚线）
+                y_limits = ylim; % 获取当前Y轴范围
+                plot([0, 0], y_limits, 'k--', 'LineWidth', 2, 'DisplayName', 'Separatrix');
+
+                % 设置坐标轴和标签（下子图显示X轴标签，Y轴显示刻度和数值但无标题）
+                xlabel('$r - r_{\mathrm{sep}}$ (cm)', 'FontSize', fontSize+8, 'FontName','Times New Roman','Interpreter','latex');
+                % Y轴显示刻度和数值，但不设置Y轴标题（由整体标题提供）
+                % 移除子图标题
+
+                % 设置X轴范围，Y轴使用MATLAB自动设置
+                xlim(x_range);
+
+                grid on;
+                box on;
+                % 移除图例
+                set(gca, 'FontSize', fontSize+4, 'FontName', 'Times New Roman', 'LineWidth', 2.0);
+                % 确保Y轴刻度数字正常显示，使用Times New Roman字体
+                set(gca, 'YTickLabelMode', 'auto');  % 确保Y轴标签自动显示
+                set(gca, 'TickLabelInterpreter', 'latex');
+
+                % 调整子图纵横比：横轴长度约为纵轴长度的2倍
+                pbaspect([2, 1, 1]);  % 设置纵横比为2:1
 
                 hold off;
 
                 % 保存径向电势分布剖面图
-                saveFigureWithTimestamp(sprintf('Radial_Potential_Distribution_Combined'));
+                saveFigureWithTimestamp(sprintf('Radial_Potential_Distribution_Subplots'));
             end
 
         catch ME
             fprintf('Error generating radial potential distribution plot for case %s: %s\n', currentLabel, ME.message);
         end
 
-        %% =========================================================================
-        %   新增功能2: 创建分离面内外网格的极向电势分布对比图（双子图）
-        % =========================================================================
-        try
-            % 径向网格13对应分离面内最后一个网格（芯部侧）
-            % 径向网格14对应分离面外第一个网格（SOL侧）
-            radial_grid_core = 13;  % 分离面内（芯部侧）
-            radial_grid_sol = 14;   % 分离面外（SOL侧）
 
-            % 检查径向网格索引是否有效
-            [nxd, nyd] = size(potential_data);
-            if radial_grid_core <= nyd && radial_grid_sol <= nyd
-                % 创建极向电势分布对比图（双子图）
-                figName_poloidal = sprintf('Poloidal Potential Distribution Comparison (Core vs SOL): %s', currentLabel);
-                figure('Name', figName_poloidal, 'NumberTitle','off', 'Color','w',...
-                       'Units','pixels','Position',[300 150 1600 1000]);
-                applyTimesFont(gcf, fontSize-2);
-
-                % 芯部区域定义（极向网格26-73，参考plot_impurity_flux_comparison_analysis.m）
-                core_pol_start = 26;
-                core_pol_end = 73;
-
-                % 创建极向网格索引（1到nxd）
-                poloidal_indices = 1:nxd;
-
-                % ================= 子图1: 分离面内网格(径向网格13)的极向电势分布 =================
-                subplot(2, 1, 1);
-                hold on;
-
-                % 提取径向网格13处的极向电势分布
-                potential_core = potential_data(:, radial_grid_core);
-
-                % 绘制极向电势分布
-                plot(poloidal_indices, potential_core, 'r-', 'LineWidth', 3, ...
-                     'DisplayName', sprintf('Radial Grid %d (Core Side)', radial_grid_core));
-
-                % 标记关键极向位置
-                % 内偏滤器X点位置
-                iXpoint_inner = 74;
-                if iXpoint_inner <= nxd
-                    plot(iXpoint_inner, potential_core(iXpoint_inner), 'ko', ...
-                         'MarkerSize', 10, 'MarkerFaceColor', 'k', 'LineWidth', 2, ...
-                         'DisplayName', 'Inner X-point');
-                end
-
-                % 外偏滤器关键位置
-                outer_key_positions = [7, 25];
-                for k = 1:length(outer_key_positions)
-                    pos = outer_key_positions(k);
-                    if pos <= nxd
-                        plot(pos, potential_core(pos), 'mo', ...
-                             'MarkerSize', 8, 'MarkerFaceColor', 'm', 'LineWidth', 2, ...
-                             'DisplayName', sprintf('Outer Div Key Pos %d', pos));
-                    end
-                end
-
-                % 芯部区域标记（极向网格26-73）
-                if core_pol_start <= nxd && core_pol_end <= nxd
-                    % 添加芯部区域的背景色
-                    ylims = ylim;
-                    fill([core_pol_start, core_pol_end, core_pol_end, core_pol_start], ...
-                         [ylims(1), ylims(1), ylims(2), ylims(2)], ...
-                         'c', 'FaceAlpha', 0.3, 'EdgeColor', 'none', ...
-                         'DisplayName', 'Core Region (26-73)');
-                end
-
-                % 设置坐标轴和标签
-                xlabel('Poloidal Grid Index', 'FontSize', fontSize-2, 'FontName','Times New Roman');
-                ylabel('$\phi$ (V)', 'FontSize', fontSize-2, 'FontName','Times New Roman','Interpreter','latex');
-                title(sprintf('Poloidal Potential at Radial Grid %d (Core Side of Separatrix)', radial_grid_core), ...
-                      'FontSize', fontSize-4, 'FontName','Times New Roman');
-
-                % 设置网格和图例
-                grid on;
-                box on;
-                legend('Location', 'best', 'FontSize', fontSize-10, 'FontName', 'Times New Roman');
-
-                % 设置坐标轴属性
-                set(gca, 'FontSize', fontSize-4, 'FontName', 'Times New Roman', 'LineWidth', 1.5);
-                xlim([1, nxd]);
-
-                hold off;
-
-                % ================= 子图2: 分离面外网格(径向网格14)的极向电势分布 =================
-                subplot(2, 1, 2);
-                hold on;
-
-                % 提取径向网格14处的极向电势分布
-                potential_sol = potential_data(:, radial_grid_sol);
-
-                % 绘制极向电势分布
-                plot(poloidal_indices, potential_sol, 'b-', 'LineWidth', 3, ...
-                     'DisplayName', sprintf('Radial Grid %d (SOL Side)', radial_grid_sol));
-
-                % 标记关键极向位置
-                % 内偏滤器X点位置
-                if iXpoint_inner <= nxd
-                    plot(iXpoint_inner, potential_sol(iXpoint_inner), 'ko', ...
-                         'MarkerSize', 10, 'MarkerFaceColor', 'k', 'LineWidth', 2, ...
-                         'DisplayName', 'Inner X-point');
-                end
-
-                % 外偏滤器关键位置
-                for k = 1:length(outer_key_positions)
-                    pos = outer_key_positions(k);
-                    if pos <= nxd
-                        plot(pos, potential_sol(pos), 'mo', ...
-                             'MarkerSize', 8, 'MarkerFaceColor', 'm', 'LineWidth', 2, ...
-                             'DisplayName', sprintf('Outer Div Key Pos %d', pos));
-                    end
-                end
-
-                % 主SOL区域标记（极向网格26-73）
-                if core_pol_start <= nxd && core_pol_end <= nxd
-                    % 添加主SOL区域的背景色
-                    ylims = ylim;
-                    fill([core_pol_start, core_pol_end, core_pol_end, core_pol_start], ...
-                         [ylims(1), ylims(1), ylims(2), ylims(2)], ...
-                         'y', 'FaceAlpha', 0.3, 'EdgeColor', 'none', ...
-                         'DisplayName', 'Main SOL Region (26-73)');
-                end
-
-                % 设置坐标轴和标签
-                xlabel('Poloidal Grid Index', 'FontSize', fontSize-2, 'FontName','Times New Roman');
-                ylabel('$\phi$ (V)', 'FontSize', fontSize-2, 'FontName','Times New Roman','Interpreter','latex');
-                title(sprintf('Poloidal Potential at Radial Grid %d (SOL Side of Separatrix)', radial_grid_sol), ...
-                      'FontSize', fontSize-4, 'FontName','Times New Roman');
-
-                % 设置网格和图例
-                grid on;
-                box on;
-                legend('Location', 'best', 'FontSize', fontSize-10, 'FontName', 'Times New Roman');
-
-                % 设置坐标轴属性
-                set(gca, 'FontSize', fontSize-4, 'FontName', 'Times New Roman', 'LineWidth', 1.5);
-                xlim([1, nxd]);
-
-                hold off;
-
-                % 调整子图间距
-                sgtitle(sprintf('Poloidal Potential Distribution: Core vs SOL Comparison (%s)', currentLabel), ...
-                        'FontSize', fontSize-2, 'FontName','Times New Roman', 'FontWeight', 'bold');
-
-                % 保存极向电势分布对比图
-                saveFigureWithTimestamp(sprintf('Poloidal_Potential_Distribution_Core_vs_SOL_Comparison'));
-
-            else
-                fprintf('Warning: Radial grid indices %d or %d exceed grid bounds (%d) for case %s. Skipping poloidal potential plot.\n', ...
-                        radial_grid_core, radial_grid_sol, nyd, currentLabel);
-            end
-
-        catch ME
-            fprintf('Error generating poloidal potential distribution plot for case %s: %s\n', currentLabel, ME.message);
-        end
 
     end % 结束 iDir 循环
 
@@ -477,7 +445,7 @@ end
 
 %% 辅助函数：统一当前图窗内所有文本/坐标轴字体为 Times New Roman
 function applyTimesFont(figHandle, baseFontSize)
-    if nargin < 2, baseFontSize = 32; end
+    if nargin < 2, baseFontSize = 48; end  % 增大默认字体
     set(figHandle, 'DefaultAxesFontName','Times New Roman', ...
                    'DefaultTextFontName','Times New Roman', ...
                    'DefaultAxesFontSize', baseFontSize, ...

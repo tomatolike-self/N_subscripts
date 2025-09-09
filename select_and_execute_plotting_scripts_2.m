@@ -50,7 +50,7 @@ while true % Start plotting script selection loop
     clear plot_impurity_flow_on_physical_grid
     clear plot_divertor_target_profiles
     clear plot_ExB_drift_on_physical_grid
-    clear plot_Ne_ExB_drift_flow_pattern
+    clear plot_N_ExB_drift_flow_pattern
     clear plot_potential_on_physical_grid
     clear plot_Ne8_ionization_source_and_flux_statistics
     clear plot_Ne_neutral_density_triangle
@@ -87,7 +87,7 @@ while true % Start plotting script selection loop
     clear plot_Ne_regional_source_terms_bar_comparison
     clear plot_enhanced_ExB_vs_total_flux_comparison
     clear plot_Ne_total_force_flow_pattern plot_Ne_charge_state_force_flow_pattern
-    clear plot_Ne_ionization_rate_source_and_poloidal_stagnation_point
+    clear plot_N_ionization_rate_source_and_poloidal_stagnation_point
     clear plot_flux_tube_velocity_analysis
     clear plot_core_region_force_distribution
     clear plot_separatrix_parallel_velocity_poloidal_distribution
@@ -118,7 +118,7 @@ while true % Start plotting script selection loop
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│            [2] IONIZATION SOURCE & STAGNATION POINT ANALYSIS       │\n');
     fprintf('└─────────────────────────────────────────────────────────────────────┘\n');
-    fprintf(' 9: Ionization source and poloidal stagnation point\n');
+    fprintf(' 9: Ionization source and poloidal stagnation point (use sna)\n');
     fprintf('22: Ionization source and poloidal stagnation point distribution (with PFR region option)\n');
     fprintf('23: D+ Ionization source and poloidal stagnation point distribution (with PFR region )\n');
     fprintf('24: D ion ionization source and parallel velocity stagnation point distribution\n');
@@ -1133,7 +1133,7 @@ while true % Start plotting script selection loop
     script_index = 42;
     if ismember(script_index, script_choices)
         fprintf('\n--- Executing script %d: Ne ion ExB drift flux density on computational grid (with charge state selection) ---\n', script_index);
-        plot_Ne_ExB_drift_flow_pattern(all_radiationData);
+        plot_N_ExB_drift_flow_pattern(all_radiationData);
     end
 
     % ------------------------------------------------------------------------
@@ -2750,7 +2750,7 @@ while true % Start plotting script selection loop
         end
 
         % 调用新的脚本函数
-        plot_Ne_ionization_rate_source_and_poloidal_stagnation_point(all_radiationData, domain, ionization_mode);
+        plot_N_ionization_rate_source_and_poloidal_stagnation_point(all_radiationData, domain, ionization_mode);
     end
 
     % ------------------------------------------------------------------------

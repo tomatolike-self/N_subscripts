@@ -1,5 +1,5 @@
 function plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, usePresetLegends)
-    % Plot comparison of density, temperature and impurity ion density at OMP and IMP
+    % Plot comparison of density, temperature and nitrogen (N) impurity ion density at OMP and IMP
     % OMP: Outer Midplane, IMP: Inner Midplane
     % Input parameters:
     %   all_radiationData: Cell array containing radiation data
@@ -30,14 +30,14 @@ function plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, usePre
     for g = 1:length(groupDirs)
         currentGroup = groupDirs{g};
         % Adjust figure size: increase width to 1200, keep height at 900
-        fig = figure('Name',sprintf('OMP & IMP Impurity Distribution - Group %d',g),...
+        fig = figure('Name',sprintf('OMP & IMP Nitrogen Impurity Distribution - Group %d',g),...
                      'Color','w','Position',[100 100 1200 900]); % Width modified to 1200
 
         % Create 2x2 subplots
         ax1 = subplot(2,2,1); hold on; % OMP ne
         ax2 = subplot(2,2,2); hold on; % OMP te
-        ax3 = subplot(2,2,3); hold on; % OMP n_imp_tot
-        ax4 = subplot(2,2,4); hold on; % IMP n_imp_tot
+        ax3 = subplot(2,2,3); hold on; % OMP n_N_tot (nitrogen impurity)
+        ax4 = subplot(2,2,4); hold on; % IMP n_N_tot (nitrogen impurity)
 
         % ========== Initialize legend parameters ==========
         ax1_handles = gobjects(0);
@@ -58,33 +58,58 @@ function plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, usePre
 
             % Get physical coordinates
             gmtry = data.gmtry;
-            outer_j = 42; % Outer midplane index (OMP)
-            inner_j = 59; % Inner midplane index (IMP)
 
-            [x_upstream_omp, separatrix_omp] = calculate_separatrix_coordinates(gmtry, outer_j);
-            [x_upstream_imp, separatrix_imp] = calculate_separatrix_coordinates(gmtry, inner_j);
+            % 原始网格索引（包含保护单元）
+            outer_j_original = 42; % 外中平面索引 (OMP) - 原始网格
+            inner_j_original = 59; % 内中平面索引 (IMP) - 原始网格
 
+            % 转换为裁剪网格索引（去除保护单元后）
+            outer_j_cropped = outer_j_original - 1; % 裁剪网格中的索引（原始索引-1）
+            inner_j_cropped = inner_j_original - 1; % 裁剪网格中的索引（原始索引-1）
 
-            % Extract OMP data
-            ne_omp = data.plasma.ne(outer_j, :);
-            te_omp = data.plasma.te_ev(outer_j, :);
-            n_imp_tot_omp = sum(data.plasma.na(outer_j, :, 4:end), 3); % Sum over all impurity charged states
+            [x_upstream_omp, ~] = calculate_separatrix_coordinates(gmtry, outer_j_original);
+            [x_upstream_imp, ~] = calculate_separatrix_coordinates(gmtry, inner_j_original);
 
-            % Extract IMP data
-            n_imp_tot_imp = sum(data.plasma.na(inner_j, :, 4:end), 3); % Sum over all impurity charged states
+            % 创建去除保护单元的2D数据
+            ne_2D = data.plasma.ne(2:end-1, 2:end-1);
+            te_2D = data.plasma.te_ev(2:end-1, 2:end-1);
+            na_2D = data.plasma.na(2:end-1, 2:end-1, :);
+
+            % 提取OMP数据（使用裁剪网格索引）
+            ne_omp = ne_2D(outer_j_cropped, :);
+            te_omp = te_2D(outer_j_cropped, :);
+
+            % 动态确定氮(N)杂质离子价态的索引范围
+            % 氮的原子序数为7，所以氮离子价态为N1+到N7+
+            num_species = size(na_2D, 3);
+            if num_species >= 10
+                % 如果有足够的价态，使用N1+到N7+（索引4-10）
+                impurity_indices = 4:10;
+            elseif num_species >= 7
+                % 如果价态数较少，使用从N1+开始到数组末尾
+                impurity_indices = 4:num_species;
+            else
+                % 如果价态数更少，使用从第4个开始到最后
+                impurity_indices = 4:num_species;
+            end
+
+            % 计算氮杂质离子总密度：统计N1+到N7+价态，不包含中性粒子
+            n_imp_tot_omp = sum(na_2D(outer_j_cropped, :, impurity_indices), 3); % 对氮杂质离子价态求和
+
+            % 提取IMP数据（使用裁剪网格索引）
+            % 计算氮杂质离子总密度：使用相同的价态索引范围
+            n_imp_tot_imp = sum(na_2D(inner_j_cropped, :, impurity_indices), 3); % 对氮杂质离子价态求和
 
             % Get short directory name
             shortName = getShortDirName(data.dirName);
             
-            % Set color and name
-            lineColor = line_colors(mod(k-1, size(line_colors,1)) + 1, :);
+            % Set legend name
             if usePresetLegends && (k <= length(preset_legend_names))
                 shortName = preset_legend_names{k}; % Use preset legend name based on k index
             end
 
             % ====== Assign color and marker ======
             color_idx = mod(k-1, size(line_colors,1)) + 1;
-            marker_idx = mod(k-1, length(line_markers)) + 1;
 
             % ====== Plot OMP data ======
             if usePresetLegends && (k <= length(preset_legend_names))
@@ -161,7 +186,7 @@ function plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, usePre
 
             % Force x-axis ticks to include limit values
             xlim(ax, [-0.03, 0.03]);
-            set(ax, 'XTick', [-0.03:0.01:0.03]); % Ensure all ticks including boundary values are displayed
+            set(ax, 'XTick', -0.03:0.01:0.03); % Ensure all ticks including boundary values are displayed
 
             % Optimize y-axis tick display
             y_lim = ylim(ax);
@@ -184,7 +209,7 @@ function plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, usePre
 
         % IMP plot uses wider x-axis range
         xlim(ax4, [-0.06, 0.06]);
-        set(ax4, 'XTick', [-0.06:0.02:0.06]);
+        set(ax4, 'XTick', -0.06:0.02:0.06);
 
         % Optimize y-axis tick display
         y_lim = ylim(ax4);
@@ -207,16 +232,16 @@ function plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, usePre
         lg2 = legend(ax2, ax2_handles, ax2_entries, 'Location', 'best', 'Interpreter', 'latex');
         set(lg2, 'FontName', 'Times New Roman', 'FontSize', legendsize);
 
-        % Subplot 3 settings (OMP total impurity ion density)
+        % Subplot 3 settings (OMP nitrogen impurity ion density)
         xlabel(ax3, '$r - r_{\mathrm{sep}}$ (m)', 'FontSize', xlabelsize, 'FontName', 'Times New Roman', 'Interpreter', 'latex');
-        ylabel(ax3, '$n_{\mathrm{imp,tot}}$ (m$^{-3}$)', 'FontSize', ylabelsize, 'FontName', 'Times New Roman', 'Interpreter', 'latex');
-        
+        ylabel(ax3, '$n_{\mathrm{N}}$ (m$^{-3}$)', 'FontSize', ylabelsize, 'FontName', 'Times New Roman', 'Interpreter', 'latex');
+
         lg3 = legend(ax3, ax3_handles, ax3_entries, 'Location', 'best', 'Interpreter', 'latex');
         set(lg3, 'FontName', 'Times New Roman', 'FontSize', legendsize);
 
-        % Subplot 4 settings (IMP total impurity ion density)
+        % Subplot 4 settings (IMP nitrogen impurity ion density)
         xlabel(ax4, '$r - r_{\mathrm{sep}}$ (m)', 'FontSize', xlabelsize, 'FontName', 'Times New Roman', 'Interpreter', 'latex');
-        ylabel(ax4, '$n_{\mathrm{imp,tot}}$ (m$^{-3}$)', 'FontSize', ylabelsize, 'FontName', 'Times New Roman', 'Interpreter', 'latex');
+        ylabel(ax4, '$n_{\mathrm{N}}$ (m$^{-3}$)', 'FontSize', ylabelsize, 'FontName', 'Times New Roman', 'Interpreter', 'latex');
         
         lg4 = legend(ax4, ax4_handles, ax4_entries, 'Location', 'best', 'Interpreter', 'latex');
         set(lg4, 'FontName', 'Times New Roman', 'FontSize', legendsize);
@@ -244,16 +269,28 @@ function plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, usePre
         set(dcm,'UpdateFcn',@myDataCursorUpdateFcn);
         
         % Save
-        saveFigureWithTimestamp(sprintf('OMP_IMP_impurity_distribution_Group%d', g));
+        saveFigureWithTimestamp(sprintf('OMP_IMP_nitrogen_impurity_distribution_Group%d', g));
     end
 end
 
 function [x_upstream, separatrix] = calculate_separatrix_coordinates(gmtry, plane_j)
-    % Calculate separatrix coordinates using specified plane index plane_j
-    Y = gmtry.hy(plane_j, :);
+    % 使用指定平面索引plane_j计算分离面坐标
+    % 参考 plot_downstream_pol_profiles.m 的正确实现
+
+    % 网格说明：
+    % - 原始网格（包含保护单元）：98×28
+    % - 裁剪网格（去除保护单元）：96×26，对应原始网格(2:97, 2:27)
+    % - 分离面：位于裁剪网格12和13之间，即第12个网格的末端边界
+    separatrix_radial_index = 12;  % 分离面所在的网格索引（裁剪网格中的径向索引）
+
+    % 获取网格宽度（去除保护单元）
+    Y = gmtry.hy(plane_j+1, 2:end-1);  % +1因为gmtry包含保护单元
     W = [0.5*Y(1), 0.5*(Y(2:end)+Y(1:end-1))];
     hy_center = cumsum(W);
-    separatrix = (hy_center(14) + hy_center(15)) / 2; % Assuming separatrix is between grid 14 and 15
+
+    % 分离面位置：第12个网格的末端位置（12号和13号网格的交界面）
+    % 第12个网格的中心位置加上半个网格宽度
+    separatrix = hy_center(separatrix_radial_index) + 0.5*Y(separatrix_radial_index);
     x_upstream = hy_center - separatrix;
 end
 

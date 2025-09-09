@@ -427,17 +427,17 @@ function plot_radiation_Nz_distribution(all_radiationData, domain)
         colormap(jet);
 
         % 统一色标（使用对数全局 min/max）
-        caxis([log10(1e5), log10(1e7)]);  % 自己设置colorbar范围
+        caxis([log10(1e5), log10(200e5)]);  % 自己设置colorbar范围
 
         % 创建自定义颜色条，使用简化的科学计数法
         cb = colorbar;
 
         % 计算共同的指数基数，简化显示
-        exp_max = floor(log10(1e7)-2);
+        exp_max = floor(log10(200e5)-2);
         scale_factor = 10^exp_max;
 
         % 计算对数刻度位置
-        log_ticks = linspace(log10(1e5), log10(1e7), 4);
+        log_ticks = linspace(log10(1e5), log10(200e5), 4);
         % 转换回原始值并除以缩放因子
         real_ticks = 10.^log_ticks / scale_factor;
 
@@ -479,17 +479,17 @@ function plot_radiation_Nz_distribution(all_radiationData, domain)
 
         % 统一色标（使用N辐射的对数全局 min/max）
         % 设置N辐射的colorbar范围（根据实际数据范围调整）
-        caxis([log10(1e5), log10(1e7)]);  % 可根据实际数据调整
+        caxis([log10(1e5), log10(200e5)]);  % 可根据实际数据调整
 
         % 创建自定义颜色条，使用简化的科学计数法
         cb = colorbar;
 
         % 计算共同的指数基数，简化显示
-        exp_max = floor(log10(1e7)-2);
+        exp_max = floor(log10(200e5)-2);
         scale_factor = 10^exp_max;
 
         % 计算对数刻度位置
-        log_N_ticks = linspace(log10(1e5), log10(1e7), 4);
+        log_N_ticks = linspace(log10(1e5), log10(200e5), 4);
         % 转换回原始值并除以缩放因子
         real_N_ticks = 10.^log_N_ticks / scale_factor;
 
@@ -530,7 +530,7 @@ function plot_radiation_Nz_distribution(all_radiationData, domain)
         colormap(jet);
 
         % 设置统一的色标范围（使用对数值）
-        caxis([log10(1e-3), log10(100e-3)]);
+        caxis([log10(1e-3), log10(200e-3)]);
 
         % 创建自定义颜色条，使用简化的科学计数法
         cb = colorbar;
@@ -540,7 +540,7 @@ function plot_radiation_Nz_distribution(all_radiationData, domain)
         scale_factor = 10^exp_min;
 
         % 计算对数刻度位置
-        log_cz_ticks = linspace(log10(1e-3), log10(100e-3), 4);
+        log_cz_ticks = linspace(log10(1e-3), log10(200e-3), 4);
         % 转换回原始值并除以缩放因子
         real_cz_ticks = 10.^log_cz_ticks / scale_factor;
 
