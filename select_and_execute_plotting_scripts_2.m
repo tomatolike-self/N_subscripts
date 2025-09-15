@@ -91,6 +91,7 @@ while true % Start plotting script selection loop
     clear plot_flux_tube_velocity_analysis
     clear plot_core_region_force_distribution
     clear plot_separatrix_parallel_velocity_poloidal_distribution
+    clear plot_ne_hzeff_new_relationship_N
 
     fprintf('\n========================================================================\n');
     fprintf('  Choose plotting scripts to execute:\n');
@@ -219,6 +220,7 @@ while true % Start plotting script selection loop
     fprintf('53: frad,imp (impurity radiation fraction) vs Zeff relationship (scatter plot with group connections)\n');
     fprintf('54: N impurity Zeff scaling law fitting analysis (Zeff-1 vs fitted values with interactive scatter plot)\n');
     fprintf('56: Zeff scaling law grouped fitting analysis (separate fitting for fav. and unfav. B_T groups)\n');
+    fprintf('102: ne density vs new Hzeff relationship for N impurity system (N 0+ to 7+)\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│                [8] UTILITY & SPECIAL FUNCTIONS                     │\n');
@@ -2837,6 +2839,51 @@ while true % Start plotting script selection loop
 
         % 调用分离面平行速度极向分布脚本函数
         plot_separatrix_parallel_velocity_poloidal_distribution(all_radiationData);
+    end
+
+    % ------------------------------------------------------------------------
+    % 102: ne密度与新辐射效率关系图（N杂质体系）
+    % ------------------------------------------------------------------------
+    script_index = 102;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: ne density vs new Hzeff relationship plot (N impurity system) ---\n', script_index);
+
+        % 提示用户选择图例名称方式
+        prompt = 'Please select the legend naming method:\n  1: Use preset legend names (fav. B_T, unfav. B_T)\n  2: Use default directory names\n  3: Use hardcoded legend with fav./unfav. B_T and ne puffing levels\nPlease choose (1, 2, or 3): ';
+        legendChoice = input(prompt);
+
+        % 根据用户选择设置参数
+        if legendChoice == 1
+            usePresetLegends = true;
+            showLegendsForDirNames = true;
+            useHardcodedLegends = false;
+        elseif legendChoice == 2
+            usePresetLegends = false;
+            useHardcodedLegends = false;
+            % 询问是否显示图例
+            showLegendsPrompt = 'Show legends when using directory names? (y/n) [default=y]: ';
+            showLegendsChoice = input(showLegendsPrompt, 's');
+            if isempty(showLegendsChoice) || strcmpi(showLegendsChoice, 'y')
+                showLegendsForDirNames = true;
+            elseif strcmpi(showLegendsChoice, 'n')
+                showLegendsForDirNames = false;
+            else
+                fprintf('Invalid input for showing legends, defaulting to showing legends.\n');
+                showLegendsForDirNames = true;
+            end
+        elseif legendChoice == 3
+            usePresetLegends = false;
+            showLegendsForDirNames = true;
+            useHardcodedLegends = true;
+        else
+            fprintf('Invalid selection for legend naming, defaulting to using directory name as legend and showing legends.\n');
+            usePresetLegends = false;
+            showLegendsForDirNames = true;
+            useHardcodedLegends = false;
+        end
+
+        % 调用新的脚本函数（N杂质体系）
+        plot_ne_hzeff_new_relationship_N(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames, useHardcodedLegends);
     end
 
     % ------------------------------------------------------------------------
