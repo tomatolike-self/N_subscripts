@@ -160,7 +160,6 @@ while true % Start plotting script selection loop
     fprintf('81: Separatrix ExB velocity comparison (poloidal and radial velocity outside separatrix)\n');
     fprintf('85: Main ion (D+) and total Ne ion poloidal density profiles along selected flux tubes (two subplots in one figure; auto core region focus for j≤13)\n');
     fprintf('87: Multi-parameter poloidal profiles along selected flux tubes (density, temperature, pressure, potential in 4 subplots)\n');
-    fprintf('89: Core electron temperature bar comparison (energy-weighted average by electron density and volume)\n');
     fprintf('90: Ne ion charge state force density poloidal profiles along selected flux tubes (friction and thermal gradient forces by charge state)\n');
     fprintf('92: Enhanced ExB vs Total flux comparison (large fonts, clean layout, academic presentation style)\n');
     fprintf('93: Near-SOL velocity profiles (local regions only - inner/outer divertor)\n'); % 新增的局部区域绘图选项
@@ -211,6 +210,7 @@ while true % Start plotting script selection loop
     fprintf('47: Core Edge main ion density (volume-weighted) and electron temperature (energy-weighted) averages (grouped bar charts)\n');
     fprintf('48: Core Edge Total Zeff and Ne8+ Zeff comparison (1*2 layout grouped bar charts)\n');
     fprintf('49: Ne8+ ionization source inside separatrix (grouped bar charts)\n');
+    fprintf('89: Core electron temperature bar comparison (energy-weighted average by electron density and volume)\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│              [7] RELATIONSHIP & SCALING ANALYSIS                   │\n');
