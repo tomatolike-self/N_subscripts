@@ -1,4 +1,4 @@
-function plot_radiation_and_impurity(all_radiationData, domain)
+function plot_radiation_and_impurity(all_radiationData, domain, varargin)
     % =========================================================================
     % 功能：绘制每个算例的辐射和杂质分布（共2张子图）并统一colorbar范围。
     %       同时把各算例的辐射信息输出到一个带时间后缀的 .txt 文件中。
@@ -9,12 +9,23 @@ function plot_radiation_and_impurity(all_radiationData, domain)
     % 输入参数：
     %   all_radiationData  - 由主脚本收集的包含各算例辐射信息的 cell 数组
     %   domain             - 用户选择的绘图区域范围 (0/1/2)
+    %   可选 Name-Value 参数：
+    %     'use_custom_colormap' - logical，是否使用 mycontour.mat 中的自制 colormap，默认 true
     %
     % 注意：
     %   1) 需要外部自定义的函数：surfplot, plot3sep, plotstructure。
     %   2) 需要确保 all_radiationData{iDir} 中含有 radInfo 和 plasma 结构
     % =========================================================================
     
+    
+    % 解析可选参数
+    p = inputParser;
+    addParameter(p, 'use_custom_colormap', true, @(x) islogical(x) || isnumeric(x));
+    parse(p, varargin{:});
+    use_custom_colormap = logical(p.Results.use_custom_colormap);
+    
+    % 预加载自制 colormap，失败则自动回退
+    [custom_colormap, use_custom_colormap] = prepare_custom_colormap(use_custom_colormap);
     
     %% 1) 在所有算例中搜索各字段的全局最小/最大值，用于统一 colorbar 范围
     all_totrad_ns_min = +Inf;   all_totrad_ns_max = -Inf;
@@ -111,7 +122,7 @@ function plot_radiation_and_impurity(all_radiationData, domain)
         shading interp; view(2);
         hold on;
         plot3sep(radInfo.gmtry, 'color', 'w', 'LineStyle', '--', 'LineWidth', 1.0);
-        colormap(jet);
+        apply_colormap_to_axes(gca, use_custom_colormap, custom_colormap);
         % 统一色标（使用对数全局 min/max）
         caxis([log10(2.3e03), log_totrad_ns_max]);
         
@@ -127,7 +138,7 @@ function plot_radiation_and_impurity(all_radiationData, domain)
         set(gca, 'fontsize', 14);
         xlabel('R (m)', 'fontsize', 14);
         ylabel('Z (m)', 'fontsize', 14);
-        title('Total radiation rate (W/m^3)', 'FontSize', 14);
+        title('Total $P_{\mathrm{rad}}$ (W/m^3)', 'FontSize', 14, 'Interpreter', 'latex');
         axis square; box on;
         % 如果 domain ~= 0，则针对性地裁剪坐标范围，并绘制结构
         if domain ~= 0
@@ -145,7 +156,7 @@ function plot_radiation_and_impurity(all_radiationData, domain)
         shading interp; view(2);
         hold on;
         plot3sep(radInfo.gmtry, 'color', 'w', 'LineStyle', '--', 'LineWidth', 1.0);
-        colormap(jet);
+        apply_colormap_to_axes(gca, use_custom_colormap, custom_colormap);
         caxis([log_impDens_min, log_impDens_max]);
         
         % 创建自定义颜色条
@@ -157,7 +168,7 @@ function plot_radiation_and_impurity(all_radiationData, domain)
         set(gca, 'fontsize', 14);
         xlabel('R (m)', 'fontsize', 14);
         ylabel('Z (m)', 'fontsize', 14);
-        title('Total Impurity Density (m^{-3})', 'FontSize', 14);
+        title('$n_{\mathrm{imp}}$ (m^{-3})', 'FontSize', 14, 'Interpreter', 'latex');
         axis square; box on;
         if domain ~= 0
             if domain == 1
@@ -183,5 +194,37 @@ function plot_radiation_and_impurity(all_radiationData, domain)
         figFullPath = fullfile(pwd, figFilename);
         savefig(figFullPath);
         fprintf('Figure has been saved to: %s\n', figFullPath);
+    end
+end
+
+function [custom_colormap, use_custom_colormap] = prepare_custom_colormap(use_custom_colormap)
+% 预加载自制 colormap，如失败则退回默认
+    custom_colormap = [];
+    if ~use_custom_colormap
+        return;
+    end
+
+    try
+        data = load('mycontour.mat', 'mycontour');
+        if isfield(data, 'mycontour')
+            custom_colormap = data.mycontour;
+        else
+            warning('plot_radiation_and_impurity:MissingColormapVar', ...
+                'Variable mycontour not found in mycontour.mat. Falling back to jet colormap.');
+            use_custom_colormap = false;
+        end
+    catch ME
+        warning('plot_radiation_and_impurity:CustomColormapLoadFailed', ...
+            'Failed to load mycontour.mat (%s). Falling back to jet colormap.', ME.message);
+        use_custom_colormap = false;
+    end
+end
+
+function apply_colormap_to_axes(ax, use_custom_colormap, custom_colormap)
+% 将 colormap 应用于指定坐标轴
+    if use_custom_colormap && ~isempty(custom_colormap)
+        colormap(ax, custom_colormap);
+    else
+        colormap(ax, 'jet');
     end
 end

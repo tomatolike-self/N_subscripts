@@ -824,8 +824,19 @@ while true % Start plotting script selection loop
         fprintf('\n--- Executing script %d: Radiation distribution and impurity density distribution (2D contour) ---\n', script_index);
         % 询问绘图范围domain
         domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
+        % 询问是否使用自制colormap
+        use_custom_colormap_choice = input('Do you want to use custom colormap (mycontour.mat)? (1=yes, 0=no) [default=1]: ');
+        if isempty(use_custom_colormap_choice)
+            use_custom_colormap_choice = 1; % 默认使用自制colormap
+        end
+        use_custom_colormap = logical(use_custom_colormap_choice);
+        if use_custom_colormap
+            fprintf('Will use custom colormap from mycontour.mat\n');
+        else
+            fprintf('Will use default jet colormap\n');
+        end
         % 调用拆分的脚本函数
-        plot_radiation_and_impurity(all_radiationData, domain);
+        plot_radiation_and_impurity(all_radiationData, domain, 'use_custom_colormap', use_custom_colormap);
     end
 
     % ------------------------------------------------------------------------
