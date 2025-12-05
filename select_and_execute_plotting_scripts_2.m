@@ -55,7 +55,7 @@ while true % Start plotting script selection loop
     clear plot_Ne8_ionization_source_and_flux_statistics
     clear plot_Ne_neutral_density_triangle
     clear plot_core_edge_main_ion_density_and_electron_temperature
-    clear plot_core_edge_total_and_Ne8_Zeff_comparison
+    clear plot_core_edge_total_and_N_highcharge_Zeff_comparison
     clear plot_Ne8_ionization_source_inside_separatrix_grouped
     clear plot_frad_vs_zeff_relationship plot_n_hzeff_relationship plot_frad_imp_vs_zeff_relationship
     clear plot_zeff_scaling_law_fitting plot_zeff_scaling_law_fitting_grouped plot_N_zeff_scaling_law_fitting
@@ -83,6 +83,7 @@ while true % Start plotting script selection loop
     clear plot_main_ion_and_total_ne_poloidal_profiles
     clear plot_flux_tube_multi_parameter_poloidal_profiles
     clear plot_core_electron_temperature_bar_comparison
+    clear plot_core_electron_temperature_bar_comparison_N
     clear plot_flux_tube_charge_state_forces
     clear plot_Ne_regional_source_terms_bar_comparison
     clear plot_enhanced_ExB_vs_total_flux_comparison
@@ -92,11 +93,15 @@ while true % Start plotting script selection loop
     clear plot_core_region_force_distribution
     clear plot_separatrix_parallel_velocity_poloidal_distribution
     clear plot_ne_hzeff_new_relationship_N
+    clear plot_core_region_impurity_charge_state_fraction_bar_N
+    clear plot_core_edge_n_density_stacked_bar
 
     fprintf('\n========================================================================\n');
     fprintf('  Choose plotting scripts to execute:\n');
     fprintf('========================================================================\n');
     fprintf(' 0: Exit plotting scripts selection\n'); % Option to exit
+    fprintf('00: Close all figure windows\n'); % New option to close all figures
+    fprintf('000: Maximize all figure windows\n'); % New option to maximize all figures
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│                   [1] BASIC 2D DISTRIBUTION PLOTS                  │\n');
@@ -208,9 +213,11 @@ while true % Start plotting script selection loop
     fprintf('44: Ne8+ ionization source inside separatrix and flux through separatrix statistics (grouped bar charts)\n');
     fprintf('46: Core Edge Ne ion charge state Zeff contributions (poloidal distribution)\n');
     fprintf('47: Core Edge main ion density (volume-weighted) and electron temperature (energy-weighted) averages (grouped bar charts)\n');
-    fprintf('48: Core Edge Total Zeff and Ne8+ Zeff comparison (1*2 layout grouped bar charts)\n');
+    fprintf('48: Core Edge total Zeff and high-charge N Zeff comparison (1*2 grouped bars)\n');
     fprintf('49: Ne8+ ionization source inside separatrix (grouped bar charts)\n');
-    fprintf('89: Core electron temperature bar comparison (energy-weighted average by electron density and volume)\n');
+    fprintf('89: Core electron temperature ranking (energy-weighted average by electron density and volume, N cases)\n');
+    fprintf('122: Core edge N ion density stacked bar chart (volume-weighted poloidal average, grid 26-73, radial index 2, N1+ to N7+)\n');
+    fprintf('158: Core region impurity charge-state fraction (N1+-N7+, normalized stacked bar chart)\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│              [7] RELATIONSHIP & SCALING ANALYSIS                   │\n');
@@ -233,7 +240,7 @@ while true % Start plotting script selection loop
     fprintf('77: Ne ion flux positive/negative analysis (IDE/ODE flux separation + X-point radial flux)\n');
     fprintf('199: test script\n');
     fprintf('========================================================================\n');
-    fprintf('  Enter the script numbers to execute, separated by spaces (e.g., 1 3 5), or enter "all" to select all, "r" to refresh scripts, or "0" to exit:\n');
+    fprintf('  Enter the script numbers to execute, separated by spaces (e.g., 1 3 5), or enter "all" to select all, "r" to refresh scripts, "00" to close all figures, "000" to maximize all figures, or "0" to exit:\n');
 
     script_choices_str = input('Please enter your choice: ', 's');
 
@@ -243,6 +250,26 @@ while true % Start plotting script selection loop
         fprintf('Returning to main script for refresh...\n');
         exit_requested = 'refresh';
         break; % 退出绘图脚本，返回主脚本
+    elseif strcmpi(script_choices_str, '00')
+        fprintf('Closing all figure windows...\n');
+        close all; % 关闭所有图像窗口
+        fprintf('All figure windows have been closed. You can continue plotting.\n');
+        continue; % 继续显示菜单，不退出循环
+    elseif strcmpi(script_choices_str, '000')
+        fprintf('Maximizing all figure windows...\n');
+        % 获取所有打开的图像窗口
+        fig_handles = findall(0, 'Type', 'figure');
+        if isempty(fig_handles)
+            fprintf('No figure windows are currently open.\n');
+        else
+            % 将所有图像窗口设置为全屏
+            for i = 1:length(fig_handles)
+                figure(fig_handles(i)); % 激活当前图像窗口
+                set(fig_handles(i), 'WindowState', 'maximized'); % 设置为全屏
+            end
+            fprintf('All %d figure windows have been maximized. You can now view details more clearly.\n', length(fig_handles));
+        end
+        continue; % 继续显示菜单，不退出循环
     elseif strcmpi(script_choices_str, '0')
         fprintf('Exiting entire script execution.\n');
         exit_requested = 'exit';
@@ -251,7 +278,7 @@ while true % Start plotting script selection loop
         script_choices = str2num(script_choices_str); % 将字符串转换为数字数组
         % 错误处理，如果输入不是数字或小于 0，可以给出提示
         if isempty(script_choices) || any(script_choices < 0) || any(mod(script_choices, 1) ~= 0) % 只需要检查是否为空，是否小于0，是否为整数
-            fprintf('Invalid input, please re-enter valid script numbers, "all", "r" to refresh, or "0".\n');
+            fprintf('Invalid input, please re-enter valid script numbers, "all", "r" to refresh, "00" to close all figures, "000" to maximize all figures, or "0".\n');
             script_choices = []; % Do not execute any plotting if the input is invalid
             continue; % Go to the next iteration of the loop to re-prompt
         end
@@ -1268,7 +1295,7 @@ while true % Start plotting script selection loop
     % ------------------------------------------------------------------------
     script_index = 48;
     if ismember(script_index, script_choices)
-        fprintf('\n--- Executing script %d: Core Edge Total Zeff and Ne8+ Zeff comparison (1*2 layout) ---\n', script_index);
+        fprintf('\n--- Executing script %d: Core Edge total Zeff and high-charge N Zeff comparison (1*2 layout) ---\n', script_index);
 
         % 提示用户选择图例名称方式
         prompt = 'Please select the legend naming method:\n  1: Use preset legend names (favorable Bt, unfavorable Bt, w/o drift)\n  2: Use default directory names\nPlease choose (1 or 2) [default=2]: ';
@@ -1299,8 +1326,8 @@ while true % Start plotting script selection loop
             showLegendsForDirNames = true;
         end
 
-        % 调用新的脚本函数
-        plot_core_edge_total_and_Ne8_Zeff_comparison(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames);
+        % 调用 N 版芯部边缘 Zeff 对比脚本（总 Zeff + 最高价态 N Zeff）
+        plot_core_edge_total_and_N_highcharge_Zeff_comparison(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames);
     end
 
     % ------------------------------------------------------------------------
@@ -2443,28 +2470,30 @@ while true % Start plotting script selection loop
     end
 
     % ------------------------------------------------------------------------
-    % 89: 芯部电子温度柱状对比图（能量加权平均）
+    % 89: 芯部电子温度排序（能量加权平均，N杂质算例）
     % ------------------------------------------------------------------------
     script_index = 89;
     if ismember(script_index, script_choices)
-        fprintf('\n--- Executing script %d: Core electron temperature bar comparison (energy-weighted average) ---\n', script_index);
+        fprintf('\n--- Executing script %d: Core electron temperature ranking (energy-weighted average, N cases) ---\n', script_index);
+        fprintf('>>> This script ranks core Te using energy-weighted average by ne and volume, tailored for N impurity cases.\n');
+        fprintf('>>> It generates a sorted bar chart and saves the sorted directory list to a timestamped TXT file.\n');
 
-        % 提示用户选择图例名称方式
-        prompt = 'Please select the legend naming method:\n  1: Use preset legend names (favorable Bt, unfavorable Bt, w/o drift)\n  2: Use default directory names\nPlease choose (1 or 2): ';
+        prompt = ['Please select the legend naming method:\n' ...
+                  '  1: Use preset legend names (favorable Bt, unfavorable Bt, w/o drift)\n' ...
+                  '  2: Use default directory names\n' ...
+                  'Please choose (1 or 2): '];
         legendChoice = input(prompt);
 
-        % 根据用户选择设置 usePresetLegends 变量
         if legendChoice == 1
             usePresetLegends = true;
         elseif legendChoice == 2
             usePresetLegends = false;
         else
             fprintf('Invalid selection, defaulting to using directory name as legend.\n');
-            usePresetLegends = false; % 默认使用目录名称
+            usePresetLegends = false;
         end
 
-        % 调用拆分的脚本函数
-        plot_core_electron_temperature_bar_comparison(all_radiationData, groupDirs, usePresetLegends);
+        plot_core_electron_temperature_bar_comparison_N(all_radiationData, groupDirs, usePresetLegends);
     end
 
     % ------------------------------------------------------------------------
@@ -2895,6 +2924,55 @@ while true % Start plotting script selection loop
 
         % 调用新的脚本函数（N杂质体系）
         plot_ne_hzeff_new_relationship_N(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames, useHardcodedLegends);
+    end
+
+    % ------------------------------------------------------------------------
+    % 122: 绘制芯部边缘N离子密度堆叠柱状图（N1+-N7+）
+    % ------------------------------------------------------------------------
+    script_index = 122;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Core edge N ion density stacked bar chart ---\n', script_index);
+        fprintf('    This script creates a stacked bar chart showing:\n');
+        fprintf('      - N1+ to N7+ ion density at core edge region\n');
+        fprintf('      - Density values are volume-weighted poloidal averages\n');
+        fprintf('      - Poloidal range: grid 26-73 (core region)\n');
+        fprintf('      - Radial position: index 2 (core edge)\n');
+        fprintf('      - Each bar shows stacked contributions from different charge states\n');
+        fprintf('      - Color differentiation by charge states\n');
+        fprintf('    Volume-weighted average formula:\n');
+        fprintf('      <n> = sum(n_i * V_i) / sum(V_i)\n');
+        fprintf('      where n_i is density at grid i, V_i is volume at grid i\n');
+        
+        % 调用绘图函数
+        plot_core_edge_n_density_stacked_bar(all_radiationData, groupDirs);
+    end
+
+    % ------------------------------------------------------------------------
+    % 158: 绘制芯部区域N1+-N7+占比堆叠柱状图（归一化）
+    % ------------------------------------------------------------------------
+    script_index = 158;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Core region impurity charge-state fraction (N1+-N7+, normalized stacked bar) ---\n', script_index);
+        fprintf('    Integrates N1+ to N7+ densities in core region (poloidal 25-72, radial 1-12, guard cells removed) and plots normalized stacked bars.\n');
+
+        prompt = ['Please select the legend naming method:\n', ...
+            '  1: Use preset legend names (favorable Bt, unfavorable Bt, w/o drift)\n', ...
+            '  2: Use default directory names\n', ...
+            'Please choose (1 or 2) [default=2]: '];
+        legendChoice = input(prompt);
+
+        if isempty(legendChoice)
+            usePresetLegends = false;
+        elseif legendChoice == 1
+            usePresetLegends = true;
+        elseif legendChoice == 2
+            usePresetLegends = false;
+        else
+            fprintf('Invalid selection, defaulting to using directory name as legend.\n');
+            usePresetLegends = false;
+        end
+
+        plot_core_region_impurity_charge_state_fraction_bar_N(all_radiationData, groupDirs, usePresetLegends);
     end
 
     % ------------------------------------------------------------------------

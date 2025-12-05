@@ -34,47 +34,47 @@ groups = struct();
 
 % N 0.5 浓度组 (有利BT) - 7个算例
 groups.fav_BT{1} = {
+    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_Flux1p15e22_target1_target1');
     fullfile(base_path, '5p5mw_flux_1p0415e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5');
+    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5');
     fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5');
     fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_Flux1p08e22_target1_target1');
     fullfile(base_path, '8mw_flux_1p1541e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5');
     fullfile(base_path, '10mw_flux_1p2882e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5');
-    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5');
-    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_Flux1p15e22_target1_target1');
 };
 
 % N 1.0 浓度组 (有利BT) - 8个算例
 groups.fav_BT{2} = {
+    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_Flux1p15e22_target1_target1');
     fullfile(base_path, '5p5mw_flux_1p0415e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1');
+    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1');
     fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1');
     fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_Flux1p08e22_target1');
     fullfile(base_path, '8mw_flux_1p1541e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1');
     fullfile(base_path, '10mw_flux_1p2882e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_2');
-    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1');
-    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_Flux1p15e22_target1_target1');
 };
 
 % N 1.5 浓度组 (有利BT) - 8个算例
 groups.fav_BT{3} = {
-    fullfile(base_path, '5p5mw_flux_1p0415e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1');
-    fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_Flux1p08e22_N1p5_target1_target1');
-    fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_N1p5_target1_target1');
-    fullfile(base_path, '8mw_flux_1p1541e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1');
-    fullfile(base_path, '8mw_flux_1p1541e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1');
-    fullfile(base_path, '10mw_flux_1p2882e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_2_N1p5_target1_target1');
-    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1');
     fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_Flux1p15e22_N1p5_target1_target1');
+    fullfile(base_path, '5p5mw_flux_1p0415e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1');
+    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1');
+    fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_N1p5_target1_target1');
+    fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_Flux1p08e22_N1p5_target1_target1');
+    fullfile(base_path, '8mw_flux_1p1541e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1');
+    fullfile(base_path, '8mw_flux_1p1541e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1');
+    fullfile(base_path, '10mw_flux_1p2882e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_2_N1p5_target1_target1');
 };
 
 % N 2.0 浓度组 (有利BT) - 7个算例
 groups.fav_BT{4} = {
     fullfile(base_path, '5p5mw_flux_1p0415e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2');
+    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2_Flux1p15e22_target1_target1');
+    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2');
     fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N2');
     fullfile(base_path, '7mw_flux_1p1230e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N2_Flux1p08e22_target1_target1');
     fullfile(base_path, '8mw_flux_1p1541e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2');
     fullfile(base_path, '10mw_flux_1p2882e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2');
-    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2');
-    fullfile(base_path, '6mw_flux_1p0720e22', 'baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2_Flux1p15e22_target1_target1');
 };
 
 % ========================================================================
@@ -83,37 +83,37 @@ groups.fav_BT{4} = {
 
 % N 0.5 浓度组 (不利BT) - 8个算例
 groups.unfav_BT{1} = {
-    fullfile(base_path, '8mw_flux_1p2738e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5');
+    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5_Flux1p26e22_target1_target1');
     fullfile(base_path, '5p5mw_flux_1p1260e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_10_changeto_N0_4_changeto_N0p5');
+    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5');
     fullfile(base_path, '7mw_flux_1p2357e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5');
+    fullfile(base_path, '8mw_flux_1p2738e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5');
     fullfile(base_path, '7mw_flux_1p2357e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5_Flux1p20e22_target1_target1');
     fullfile(base_path, '10mw_flux_1p3000e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5');
     fullfile(base_path, '10mw_flux_1p3000e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5_target1_target1');
-    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5');
-    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N0p5_Flux1p26e22_target1_target1');
 };
 
 % N 1.0 浓度组 (不利BT) - 7个算例 (修正：移除重复算例)
 groups.unfav_BT{2} = {
-    fullfile(base_path, '8mw_flux_1p2738e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1');
+    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_Flux1p26e22_target1_target1');
     fullfile(base_path, '5p5mw_flux_1p1260e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_10_changeto_N0_4_changeto_N1_2');
-    fullfile(base_path, '10mw_flux_1p3080e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N1');
+    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1');
     fullfile(base_path, '7mw_flux_1p2357e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1');
     fullfile(base_path, '7mw_flux_1p2357e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_Flux1p20e22_target1_target1');
-    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1');
-    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_Flux1p26e22_target1_target1');
+    fullfile(base_path, '8mw_flux_1p2738e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1');
+    fullfile(base_path, '10mw_flux_1p3080e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N1');
 };
 
 % N 1.5 浓度组 (不利BT) - 6个算例 (修正：移除有数据问题的算例)
 % 基于2025-09-04新运行信息，移除了以下有问题的算例：
 % 1. /home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/10mw_flux_1p3080e22/baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N1_N1p5_target1_target1 - b2fplasma文件缺失
 groups.unfav_BT{3} = {
-    fullfile(base_path, '8mw_flux_1p2738e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_N1p5_target1_target1');
+    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_Flux1p26e22_N1p5_target1_target1');
     fullfile(base_path, '5p5mw_flux_1p1260e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_10_changeto_N0_4_changeto_N1_2_N1p5_target1_target1');
+    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_N1p5_target1_target1');
     fullfile(base_path, '7mw_flux_1p2357e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_N1p5_target1_target1');
     fullfile(base_path, '7mw_flux_1p2357e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_Flux1p20e22_N1p5_target1_target1');
-    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_N1p5_target1_target1');
-    fullfile(base_path, '6mw_flux_1p1747e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_Flux1p26e22_N1p5_target1_target1');
+    fullfile(base_path, '8mw_flux_1p2738e22', 'baseline_na2.8e19_target1_reversed_changeto_N0_2_changeto_N0_changeto_N1_N1p5_target1_target1');
 };
 
 % N 2.0 浓度组 (不利BT) - 1个算例 (修正：移除有数据问题的算例)
