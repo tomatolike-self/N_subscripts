@@ -1,4 +1,4 @@
-function groupDirs = advanced_flexible_filtering_N()
+function groupDirs = advanced_flexible_filtering_N(case_version)
 % ========================================================================
 % 高级灵活算例筛选函数 - N杂质专用版本
 % 支持自由选择变量值和分组依据的完整筛选系统
@@ -15,9 +15,35 @@ function groupDirs = advanced_flexible_filtering_N()
 %
 % ========================================================================
 
+% ------------------------------------------------------------------------
+% 兼容旧调用：不传case_version时，默认使用“重算前/原始版本”
+% 可选值：
+%   'original' - 重算前版本（默认）
+%   'rerun'    - 重算后版本（硬编码清单，目录带_input后缀）
+% ------------------------------------------------------------------------
+if nargin < 1 || isempty(case_version)
+    case_version = 'original';
+end
+case_version = lower(strtrim(case_version));
+
+if ~strcmp(case_version, 'original') && ~strcmp(case_version, 'rerun')
+    warning('Unknown case_version: %s. Falling back to ''original''.', case_version);
+    case_version = 'original';
+end
+
+% 为不同版本准备不同的标题说明（注意：所有显示文本用英文）
+if strcmp(case_version, 'rerun')
+    header_title = 'ADVANCED FLEXIBLE CASE FILTERING - N IMPURITY RERUN VERSION';
+    header_note  = 'This mode uses rerun directories with _input suffixes (hard-coded predefined list).';
+else
+    header_title = 'ADVANCED FLEXIBLE CASE FILTERING - N IMPURITY VERSION';
+    header_note  = 'This mode uses the original (pre-rerun) predefined case groups.';
+end
+
 fprintf('\n========================================================================\n');
-fprintf('ADVANCED FLEXIBLE CASE FILTERING - N IMPURITY VERSION\n');
+fprintf('%s\n', header_title);
 fprintf('========================================================================\n');
+fprintf('%s\n', header_note);
 fprintf('This mode allows you to:\n');
 fprintf('1. Freely select values for each variable (single, combination, or all)\n');
 fprintf('2. Choose which variables to use as grouping criteria\n');
@@ -213,7 +239,7 @@ end
 
 if strcmpi(confirm, 'n')
     fprintf('Configuration cancelled. Restarting...\n');
-    groupDirs = advanced_flexible_filtering_N();  % 递归重新开始
+    groupDirs = advanced_flexible_filtering_N(case_version);  % 递归重新开始
     return;
 end
 
@@ -224,7 +250,7 @@ fprintf('=======================================================================
 
 % 调用筛选和分组函数
 groupDirs = execute_filtering_and_grouping_N(selected_bt, selected_n, selected_power, ...
-                                           bt_as_group, n_as_group, power_as_group);
+                                           bt_as_group, n_as_group, power_as_group, case_version);
 
 fprintf('Filtering and grouping completed successfully!\n');
 fprintf('Total groups generated: %d\n', length(groupDirs));

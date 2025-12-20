@@ -56,11 +56,12 @@ fprintf('Please choose how to select directories:\n');
 fprintf('1: Scan all subdirectories under the current directory\n');
 fprintf('2: Provide one or multiple directory paths\n');
 fprintf('3: Use advanced flexible case filtering (custom selection + grouping)\n');
-method_choice = input('Please enter 1, 2, or 3: ');
+fprintf('4: Use advanced flexible case filtering for RERUN cases (hard-coded predefined list)\n');
+method_choice = input('Please enter 1, 2, 3, or 4: ');
 
-while method_choice ~= 1 && method_choice ~= 2 && method_choice ~= 3
-    fprintf('Invalid input, please enter 1, 2, or 3.\n');
-    method_choice = input('Please enter 1, 2, or 3: ');
+while method_choice ~= 1 && method_choice ~= 2 && method_choice ~= 3 && method_choice ~= 4
+    fprintf('Invalid input, please enter 1, 2, 3, or 4.\n');
+    method_choice = input('Please enter 1, 2, 3, or 4: ');
 end
 
 % 根据用户选择的方式获取目录列表
@@ -221,6 +222,19 @@ elseif method_choice == 3
 
     % 调用新的灵活筛选函数
     groupDirs = advanced_flexible_filtering_N();
+
+elseif method_choice == 4
+    % --- 方法4：高级灵活算例筛选（重算算例专用，目录带_input后缀） ---
+    fprintf('========================================================================\n');
+    fprintf('ADVANCED FLEXIBLE CASE FILTERING - RERUN CASES (N)\n');
+    fprintf('========================================================================\n');
+    fprintf('This mode is specifically for rerun cases with _input suffixes.\n');
+    fprintf('Rerun paths are loaded from a hard-coded predefined group file.\n');
+    fprintf('Grouping and ordering follow mode 3 (original version).\n');
+    fprintf('========================================================================\n');
+
+    % 调用同一个筛选入口，但切换到rerun版本（内部使用硬编码的重算算例清单）
+    groupDirs = advanced_flexible_filtering_N('rerun');
 
 else
     error('Invalid selection method.');

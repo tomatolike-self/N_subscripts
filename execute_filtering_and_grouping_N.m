@@ -1,5 +1,5 @@
 function groupDirs = execute_filtering_and_grouping_N(selected_bt, selected_n, selected_power, ...
-                                                     bt_as_group, n_as_group, power_as_group)
+                                                     bt_as_group, n_as_group, power_as_group, case_version)
 % ========================================================================
 % 执行筛选和分组的核心函数 - N杂质专用版本
 % ========================================================================
@@ -17,9 +17,24 @@ function groupDirs = execute_filtering_and_grouping_N(selected_bt, selected_n, s
 %
 % ========================================================================
 
+% ------------------------------------------------------------------------
+% 兼容旧调用：不传case_version时，默认使用“重算前/原始版本”
+% ------------------------------------------------------------------------
+if nargin < 7 || isempty(case_version)
+    case_version = 'original';
+end
+case_version = lower(strtrim(case_version));
+
 % 获取所有可用的算例数据
-fprintf('Loading predefined case groups...\n');
-raw_groups = predefined_case_groups_N_real();
+if strcmp(case_version, 'rerun')
+    fprintf('Loading predefined rerun case groups...\n');
+    raw_groups = predefined_case_groups_N_rerun_20251218();
+else
+    % 默认/兜底：使用原始（重算前）版本的算例分组
+    case_version = 'original';
+    fprintf('Loading predefined case groups...\n');
+    raw_groups = predefined_case_groups_N_real();
+end
 
 % 验证和去重算例
 fprintf('Validating and deduplicating cases...\n');
@@ -83,10 +98,18 @@ end
 % ========================================================================
 function [bt_info, n_info, power_info] = extract_case_info_N(case_path)
     % 提取BT方向信息
-    if contains(case_path, '_un_')
+    % 说明（中文注释）：
+    % - N 杂质算例的路径命名通常使用 target1_normal / target1_reversed 来区分 BT 方向
+    % - 之前用的“_un_”只适用于部分旧命名方式，会导致所有算例都被误标为 [fav]
+    if contains(case_path, 'target1_reversed') || contains(case_path, '_reversed_') || contains(case_path, 'reversed')
+        bt_info = '[unfav]';
+    elseif contains(case_path, 'target1_normal') || contains(case_path, '_normal_') || contains(case_path, 'normal')
+        bt_info = '[fav]';
+    elseif contains(case_path, '_un_')
+        % 兼容旧命名：某些脚本/算例可能使用 _un_ 标记 unfav
         bt_info = '[unfav]';
     else
-        bt_info = '[fav]';
+        bt_info = '[?BT]';
     end
 
     % 提取N浓度信息
