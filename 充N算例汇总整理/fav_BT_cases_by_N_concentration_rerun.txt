@@ -1,0 +1,67 @@
+========================================================================
+有利BT方向 (fav BT) - normal方向 重算算例
+按N浓度分组的完整算例路径
+========================================================================
+基于: predefined_case_groups_N_rerun_20251218.m
+生成时间: 2026-01-04
+总计: 29个算例
+
+========================================================================
+N 0.5 浓度组 (有利BT) - 7个算例
+========================================================================
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/6mw_flux_1p0720e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_Flux1p15e22_target1_target1_input2
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/5p5mw_flux_1p0415e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_input2
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/6mw_flux_1p0720e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_input2
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/7mw_flux_1p1230e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_input2
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/7mw_flux_1p1230e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_Flux1p08e22_target1_target1_input2
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/8mw_flux_1p1541e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_input2
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/10mw_flux_1p2882e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N0p5_input2
+
+========================================================================
+N 1.0 浓度组 (有利BT) - 7个算例
+========================================================================
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/6mw_flux_1p0720e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_Flux1p15e22_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/5p5mw_flux_1p0415e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/6mw_flux_1p0720e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/7mw_flux_1p1230e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/7mw_flux_1p1230e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_Flux1p08e22_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/8mw_flux_1p1541e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/10mw_flux_1p2882e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_2_input1
+
+========================================================================
+N 1.5 浓度组 (有利BT) - 8个算例
+========================================================================
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/6mw_flux_1p0720e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_Flux1p15e22_N1p5_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/5p5mw_flux_1p0415e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/6mw_flux_1p0720e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/7mw_flux_1p1230e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_N1p5_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/7mw_flux_1p1230e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N1_Flux1p08e22_N1p5_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/8mw_flux_1p1541e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/8mw_flux_1p1541e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_N1p5_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/10mw_flux_1p2882e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N1_2_N1p5_target1_target1_input1
+
+========================================================================
+N 2.0 浓度组 (有利BT) - 7个算例
+========================================================================
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/5p5mw_flux_1p0415e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/6mw_flux_1p0720e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2_Flux1p15e22_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/6mw_flux_1p0720e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/7mw_flux_1p1230e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N2_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/7mw_flux_1p1230e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N2_Flux1p08e22_target1_target1_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/8mw_flux_1p1541e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2_input1
+/home/task3/xrqliang/solps/SOLPS-ITER-3.0.7-20201205/runs/EAST/81574_D+N/10mw_flux_1p2882e22/baseline_na2.8e19_target1_normal_changeto_N0_changeto_N0_changeto_N2_input1
+
+========================================================================
+统计信息
+========================================================================
+FAV BT 组总计: 29个算例
+  - N 0.5: 7个算例
+  - N 1.0: 7个算例
+  - N 1.5: 8个算例
+  - N 2.0: 7个算例
+
+说明：
+  - 基于 predefined_case_groups_N_rerun_20251218.m
+  - 重算目录带 _input1 或 _input2 后缀
+  - 原始版本（30个）vs 重算版本（29个）：N1.0组少1个，N1.5/N2.0组相同
+========================================================================

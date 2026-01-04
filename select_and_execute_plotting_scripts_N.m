@@ -95,6 +95,20 @@ while true % Start plotting script selection loop
     clear plot_ne_hzeff_new_relationship_N
     clear plot_core_region_impurity_charge_state_fraction_bar_N
     clear plot_core_edge_n_density_stacked_bar
+    clear plot_N_ion_density_physical_grid_cellflat
+    clear plot_N_plus_ionization_source_rsana
+    clear plot_N_ionization_source_rsana_computational_grid
+    clear plot_total_N_ionization_source_computational_grid
+    clear plot_N_ionization_source_and_flow_pattern_with_stagnation
+    clear plot_potential_ExB_flow_pattern
+    clear plot_potential_ExB_flow_pattern_power_law
+    clear plot_potential_ExB_radial_drift_physical_grid_cellflat
+    clear plot_potential_ExB_radial_drift_physical_grid_cellflat_gray
+    clear plot_potential_physical_grid_segmented_colormap_cellflat
+    clear plot_radiation_Cz_distribution_separate_figs
+    clear plot_radiation_Cz_distribution_simple
+    clear plot_N_ion_flux_distribution_computational_grid
+    clear plot_Hzeff_frad_vs_Zeff_split_figures_N
     
     fprintf('\n========================================================================\n');
     fprintf('  Choose plotting scripts to execute:\n');
@@ -120,6 +134,14 @@ while true % Start plotting script selection loop
     fprintf('45: Ne Neutral Density distribution (triangular mesh, log scale)\n');
     fprintf('65: Radiation distribution individual (each case separate figure, 1x2 layout, with statistics)\n');
     fprintf('84: Ne neutral density distribution in computational grid (log scale)\n');
+    fprintf('132: Potential ExB flow pattern on physical grid (potential background + ExB velocity arrows)\n');
+    fprintf('152: Potential ExB radial drift on physical grid (cell-flat color, ExB radial velocity arrows)\n');
+    fprintf('157: Potential ExB radial drift on physical grid (grayscale colormap, same as 152 but gray)\n');
+    fprintf('167: N ion density distribution on physical grid (cell-flat, selectable charge states N1+-N7+)\n');
+    fprintf('168: Potential ExB flow pattern on physical grid (POWER LAW arrow scaling)\n');
+    fprintf('173: Radiation and Cz distribution separate figures (each case one figure, 1x3 layout)\n');
+    fprintf('183: Potential map on physical grid (segmented custom colormap, cell-flat, no arrows)\n');
+    fprintf('186: Radiation and c_N distribution SIMPLE (1x3: P_rad, P_rad,N, c_N; plotting only)\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│            [2] IONIZATION SOURCE & STAGNATION POINT ANALYSIS       │\n');
@@ -141,6 +163,9 @@ while true % Start plotting script selection loop
     fprintf('83: Ne source terms regional comparison (main SOL, inner/outer divertor, and total regional comparison)\n');
     fprintf('91: Ne regional source terms bar comparison (optimized bar chart for regional total source terms)\n');
     fprintf('97: Ne ionization rate source and poloidal stagnation point (using rsana data, Ne0+ to Ne10+)\n');
+    fprintf('162: N ionization source on physical grid (rsana, flexible charge state selection N1+-N7+)\n');
+    fprintf('188: Total N ionization source (sna) in computational grid (detailed data cursor)\n');
+    fprintf('189: N ionization source (rsana) in computational grid (charge-state selectable N1+-N7+)\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│                [3] NEAR-SOL & FLUX TUBE ANALYSIS                   │\n');
@@ -193,6 +218,8 @@ while true % Start plotting script selection loop
     fprintf('88: Main ion (D+) flow pattern in computational grid\n');
     fprintf('95: Ne total force flow pattern in computational grid (sum of all charge states)\n');
     fprintf('96: Ne charge state force flow pattern in computational grid (supports specific charge state selection)\n');
+    fprintf('178: N ion flux distribution (computational grid, linear colormap, normalized arrows, supports total / subset sum / per-charge figures + auto/manual colorbar)\n');
+    fprintf('187: N ionization source (N0->N1+) background + Total N flow pattern + Stagnation points\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│                   [5] RADIAL PROFILE ANALYSIS                      │\n');
@@ -228,6 +255,7 @@ while true % Start plotting script selection loop
     fprintf('54: N impurity Zeff scaling law fitting analysis (Zeff-1 vs fitted values with interactive scatter plot)\n');
     fprintf('56: Zeff scaling law grouped fitting analysis (separate fitting for fav. and unfav. B_T groups)\n');
     fprintf('102: ne density vs new Hzeff relationship for N impurity system (N 0+ to 7+)\n');
+    fprintf('191: H(Zeff) and frad vs Zeff,CEI-1 (2 figures, reordered subplots for stacking)\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│                [8] UTILITY & SPECIAL FUNCTIONS                     │\n');
@@ -3036,6 +3064,562 @@ while true % Start plotting script selection loop
         end
         
         plot_core_region_impurity_charge_state_fraction_bar_N(all_radiationData, groupDirs, usePresetLegends);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 132: 绘制电势分布的ExB flow pattern图（物理网格）
+    % ------------------------------------------------------------------------
+    script_index = 132;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Potential ExB flow pattern on physical grid ---\n', script_index);
+        fprintf('    This script plots potential distribution with ExB velocity arrows:\n');
+        fprintf('    - Background: Potential distribution (φ) using cell-flat patch\n');
+        fprintf('    - Arrows: ExB drift velocity vectors (using D+ ExB velocity)\n');
+        fprintf('    - Note: ExB velocity is the same for all ion species\n\n');
+        
+        % 询问绘图范围domain
+        domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
+        if isempty(domain) || ~ismember(domain, [0,1,2])
+            domain = 0;
+            fprintf('Using default domain: 0 (whole domain)\n');
+        end
+        
+        % 询问是否使用自定义colormap
+        use_custom_colormap_choice = input('Do you want to use custom colormap from mycontour.mat? (1=yes, 0=no) [default=0]: ');
+        if isempty(use_custom_colormap_choice)
+            use_custom_colormap = false;
+        else
+            use_custom_colormap = logical(use_custom_colormap_choice);
+        end
+        
+        % 询问是否使用增强型箭头
+        use_enhanced_arrows_choice = input('Do you want to use enhanced arrows (clearer arrowheads)? (1=yes, 0=no) [default=0]: ');
+        if isempty(use_enhanced_arrows_choice)
+            use_enhanced_arrows = false;
+        else
+            use_enhanced_arrows = logical(use_enhanced_arrows_choice);
+        end
+        
+        % 询问是否自定义colorbar范围
+        clim_custom_choice = input('Do you want to customize colorbar range? (1=yes, 0=no) [default=0, uses -150 to 150 V]: ');
+        if isempty(clim_custom_choice) || clim_custom_choice == 0
+            clim_range = [];
+        else
+            clim_min = input('Enter minimum colorbar value (V): ');
+            clim_max = input('Enter maximum colorbar value (V): ');
+            if ~isempty(clim_min) && ~isempty(clim_max) && clim_min < clim_max
+                clim_range = [clim_min, clim_max];
+            else
+                fprintf('Invalid range, using default [-150, 150] V\n');
+                clim_range = [];
+            end
+        end
+        
+        % 调用绘图函数（直接复用Ne体系函数）
+        plot_potential_ExB_flow_pattern(all_radiationData, domain, ...
+            'use_custom_colormap', use_custom_colormap, ...
+            'use_enhanced_arrows', use_enhanced_arrows, ...
+            'clim_range', clim_range);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 152: 绘制电势分布 + ExB径向漂移速度流型图（物理网格，cell-flat）
+    % ------------------------------------------------------------------------
+    script_index = 152;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Potential & ExB radial drift on physical grid (cell-flat) ---\n', script_index);
+        fprintf('    - Background: Potential distribution (φ) using cell-flat color blocks\n');
+        fprintf('    - Arrows: ExB radial drift velocity (径向分量)\n\n');
+        
+        domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
+        if isempty(domain) || ~ismember(domain, [0,1,2])
+            domain = 0;
+            fprintf('Using default domain: 0 (whole domain)\n');
+        end
+        
+        use_custom_cmap = input('Use custom colormap from mycontour.mat? (1=yes, 0=no) [default=0]: ');
+        if isempty(use_custom_cmap)
+            use_custom_cmap = false;
+        else
+            use_custom_cmap = logical(use_custom_cmap);
+        end
+        
+        plot_potential_ExB_radial_drift_physical_grid_cellflat(all_radiationData, domain, 'use_custom_colormap', use_custom_cmap);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 157: 绘制电势分布 + ExB径向漂移速度流型图（灰度图colormap）
+    % ------------------------------------------------------------------------
+    script_index = 157;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Potential & ExB radial drift on physical grid (grayscale) ---\n', script_index);
+        fprintf('    - Same as script 152 but with grayscale colormap\n\n');
+        
+        domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
+        if isempty(domain) || ~ismember(domain, [0,1,2])
+            domain = 0;
+            fprintf('Using default domain: 0 (whole domain)\n');
+        end
+        
+        plot_potential_ExB_radial_drift_physical_grid_cellflat_gray(all_radiationData, domain);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 162: 绘制N1+至N7+各价态离子电离源分布（使用rsana计算）
+    % ------------------------------------------------------------------------
+    script_index = 162;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: N1+ to N7+ Ionization source distribution using rsana ---\n', script_index);
+        fprintf('>>> This script plots N ion ionization source distribution on physical grid.\n');
+        fprintf('>>> Uses rsana data to calculate ionization source density [m^-3 s^-1].\n');
+        
+        domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
+        
+        fprintf('\nSelect charge state plotting mode:\n');
+        fprintf(' 1: Plot specified charge states individually (one figure per state)\n');
+        fprintf(' 2: Plot combined total over a specified charge state range (one figure)\n');
+        fprintf(' 3: Plot combined total over default range N1+ to N7+ (one figure)\n');
+        mode_choice = input('Enter choice (1-3) [default=1]: ');
+        if isempty(mode_choice) || ~ismember(mode_choice, [1, 2, 3])
+            mode_choice = 1;
+        end
+        
+        % N体系价态范围为1-7
+        default_states = 1:7;
+        charge_state_groups = {};
+        
+        switch mode_choice
+            case 1
+                charge_state_input = input('Enter charge state indices (e.g., [1 3 5] or 1:7) [default=1:7]: ');
+                if isempty(charge_state_input)
+                    charge_state_input = default_states;
+                end
+                charge_state_input = unique(round(charge_state_input(:)'));
+                charge_state_input = charge_state_input(charge_state_input >= 1 & charge_state_input <= 7);
+                if isempty(charge_state_input)
+                    warning('No valid charge states provided. Using default 1:7.');
+                    charge_state_input = default_states;
+                end
+                charge_state_groups = num2cell(charge_state_input);
+                
+            case 2
+                range_input = input('Enter charge state range (e.g., [1 5] or 1:7) [default=1:7]: ');
+                if isempty(range_input)
+                    range_values = default_states;
+                elseif numel(range_input) == 2
+                    range_values = round(range_input(1)):round(range_input(2));
+                else
+                    range_values = unique(round(range_input(:)'));
+                end
+                range_values = range_values(range_values >= 1 & range_values <= 7);
+                if isempty(range_values)
+                    warning('No valid charge states provided. Using default 1:7.');
+                    range_values = default_states;
+                end
+                charge_state_groups = {range_values};
+                
+            case 3
+                charge_state_groups = {default_states};
+        end
+        
+        % 调用绘图函数（复用Ne版本，传入N专用价态范围）
+        plot_N_plus_ionization_source_rsana(all_radiationData, domain, charge_state_groups);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 167: 绘制N离子物理网格密度分布（单元统一色块，无箭头）
+    % ------------------------------------------------------------------------
+    script_index = 167;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: N ion density distribution on physical grid (cell-flat, no arrows) ---\n', script_index);
+        fprintf('    - Background: N ion density rendered as uniform-color physical cells\n');
+        fprintf('    - Supports N1+ to N7+ charge state selection\n');
+        
+        domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
+        if isempty(domain) || ~ismember(domain, [0,1,2])
+            domain = 0;
+            fprintf('Using default domain: 0 (whole domain)\n');
+        end
+        
+        fprintf('\nSelect charge state plotting mode:\n');
+        fprintf(' 1: Plot specified charge states individually\n');
+        fprintf(' 2: Plot combined total over a specified range\n');
+        fprintf(' 3: Plot combined total N1+ to N7+ (default)\n');
+        mode_choice = input('Enter choice (1-3) [default=3]: ');
+        if isempty(mode_choice) || ~ismember(mode_choice, [1, 2, 3])
+            mode_choice = 3;
+        end
+        
+        default_states = 1:7;
+        charge_state_groups = {};
+        
+        switch mode_choice
+            case 1
+                charge_state_input = input('Enter charge state indices (e.g., [1 3 5] or 1:7) [default=1:7]: ');
+                if isempty(charge_state_input)
+                    charge_state_input = default_states;
+                end
+                charge_state_input = unique(round(charge_state_input(:)'));
+                charge_state_input = charge_state_input(charge_state_input >= 1 & charge_state_input <= 7);
+                if isempty(charge_state_input)
+                    charge_state_input = default_states;
+                end
+                charge_state_groups = num2cell(charge_state_input);
+            case 2
+                range_input = input('Enter charge state range [default=1:7]: ');
+                if isempty(range_input)
+                    range_values = default_states;
+                elseif numel(range_input) == 2
+                    range_values = round(range_input(1)):round(range_input(2));
+                else
+                    range_values = unique(round(range_input(:)'));
+                end
+                range_values = range_values(range_values >= 1 & range_values <= 7);
+                if isempty(range_values)
+                    range_values = default_states;
+                end
+                charge_state_groups = {range_values};
+            case 3
+                charge_state_groups = {default_states};
+        end
+        
+        use_custom_colormap_choice = input('Use custom colormap from mycontour.mat? (1=yes, 0=no) [default=0]: ');
+        if isempty(use_custom_colormap_choice)
+            use_custom_colormap_choice = 0;
+        end
+        use_custom_colormap = logical(use_custom_colormap_choice);
+        
+        clim_input = input('Enter colorbar range [min max] or press Enter for default: ', 's');
+        if isempty(clim_input)
+            clim_range = [];
+        else
+            clim_values = str2num(clim_input);
+            if ~isempty(clim_values) && numel(clim_values) == 2 && clim_values(1) < clim_values(2)
+                clim_range = clim_values;
+            else
+                clim_range = [];
+            end
+        end
+        
+        for i_group = 1:numel(charge_state_groups)
+            current_charge_states = charge_state_groups{i_group};
+            fprintf('\n>>> Plotting charge states: %s\n', mat2str(current_charge_states));
+            plot_N_ion_density_physical_grid_cellflat(all_radiationData, domain, ...
+                'use_custom_colormap', use_custom_colormap, ...
+                'charge_states', current_charge_states, ...
+                'clim_range', clim_range);
+        end
+    end
+    
+    % ------------------------------------------------------------------------
+    % 168: 绘制电势分布的ExB flow pattern图（幂律映射箭头）
+    % ------------------------------------------------------------------------
+    script_index = 168;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Potential ExB flow pattern (Power Law Arrow Scaling) ---\n', script_index);
+        fprintf('    - Arrow Scaling: POWER LAW mapping for better low-velocity visualization\n\n');
+        
+        domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
+        if isempty(domain) || ~ismember(domain, [0,1,2])
+            domain = 0;
+        end
+        
+        use_custom_colormap_choice = input('Use custom colormap? (1=yes, 0=no) [default=0]: ');
+        use_custom_colormap = ~isempty(use_custom_colormap_choice) && logical(use_custom_colormap_choice);
+        
+        use_enhanced_arrows_choice = input('Use enhanced arrows? (1=yes, 0=no) [default=0]: ');
+        use_enhanced_arrows = ~isempty(use_enhanced_arrows_choice) && logical(use_enhanced_arrows_choice);
+        
+        clim_custom_choice = input('Customize colorbar range? (1=yes, 0=no) [default=0]: ');
+        if isempty(clim_custom_choice) || clim_custom_choice == 0
+            clim_range = [];
+        else
+            clim_min = input('Enter min colorbar value (V): ');
+            clim_max = input('Enter max colorbar value (V): ');
+            if ~isempty(clim_min) && ~isempty(clim_max) && clim_min < clim_max
+                clim_range = [clim_min, clim_max];
+            else
+                clim_range = [];
+            end
+        end
+        
+        plot_potential_ExB_flow_pattern_power_law(all_radiationData, domain, ...
+            'use_custom_colormap', use_custom_colormap, ...
+            'use_enhanced_arrows', use_enhanced_arrows, ...
+            'clim_range', clim_range);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 173: 绘制辐射分布和杂质浓度分布（每个算例单独一个figure）
+    % ------------------------------------------------------------------------
+    script_index = 173;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Radiation and Cz distribution separate figures ---\n', script_index);
+        fprintf('    - Each case creates a separate 1x3 layout figure\n');
+        
+        domain_input = input('Which domain (0-whole, 1-updiv, 2-downdiv)? [default=0]: ');
+        if isempty(domain_input)
+            domain = 0;
+        else
+            domain = domain_input;
+        end
+        
+        use_custom_colormap_choice = input('Use custom colormap? (1=yes, 0=no) [default=1]: ');
+        if isempty(use_custom_colormap_choice) || use_custom_colormap_choice == 1
+            use_custom_colormap = true;
+        else
+            use_custom_colormap = false;
+        end
+        
+        cz_scale_input = input('  Scale type for c_N (linear/log) [default=log]: ', 's');
+        if isempty(cz_scale_input)
+            cz_scale = 'log';
+        else
+            cz_scale = cz_scale_input;
+        end
+        
+        if strcmp(cz_scale, 'log')
+            clim_Cz_default = [0.01, 0.1];
+        else
+            clim_Cz_default = [0, 0.05];
+        end
+        
+        clim_Cz = clim_Cz_default;
+        clim_totrad = [5e5, 1e7];
+        clim_nerad = [5e5, 1e7];
+        
+        plot_radiation_Cz_distribution_separate_figs(all_radiationData, domain, ...
+            'use_custom_colormap', use_custom_colormap, ...
+            'cz_scale', cz_scale, ...
+            'clim_totrad', clim_totrad, ...
+            'clim_nerad', clim_nerad, ...
+            'clim_Cz', clim_Cz);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 178: 计算网格上的N离子总/区间通量分布
+    % ------------------------------------------------------------------------
+    script_index = 178;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: N ion flux distribution on computational grid ---\n', script_index);
+        fprintf('    Features:\n');
+        fprintf('    - Background: N ion flux magnitude (linear colormap, default uses mycontour.mat)\n');
+        fprintf('    - Charge-state modes: total (N1+-N7+), summed subset, or individual figures per selected charge state\n');
+        fprintf('    - Arrows: Flux directions only (normalized arrows)\n');
+        fprintf('    - Colorbar: Auto per figure with optional manual override (label reflects the active charge-state set)\n');
+        fprintf('    - Grid annotations: Standard ODE/OMP/IMP/IDE/Core/SOL markers\n');
+        fprintf('    - Data source: plasma.fna_mdf (flux values, particles/s)\n');
+        
+        plot_N_ion_flux_distribution_computational_grid(all_radiationData);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 183: 仅绘制电势分布（分块自定义colormap + cell-flat）
+    % ------------------------------------------------------------------------
+    script_index = 183;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Potential map (segmented colormap, cell-flat) ---\n', script_index);
+        fprintf('    - Segmented colormap for potential wells visualization\n\n');
+        
+        domain = input('Which domain (0-whole, 1-updiv, 2-downdiv)? ');
+        if isempty(domain) || ~ismember(domain, [0, 1, 2])
+            domain = 0;
+        end
+        
+        plot_potential_physical_grid_segmented_colormap_cellflat(all_radiationData, domain);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 186: 简化版辐射与杂质浓度分布绘图（仅绘图，无统计）
+    % ------------------------------------------------------------------------
+    script_index = 186;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Radiation and c_N distribution SIMPLE ---\n', script_index);
+        fprintf('    - SIMPLIFIED version: plotting only, no statistics output\n');
+        
+        domain_input = input('Which domain (0-whole, 1-updiv, 2-downdiv)? [default=0]: ');
+        if isempty(domain_input)
+            domain = 0;
+        else
+            domain = domain_input;
+        end
+        
+        use_custom_colormap_choice = input('Use custom colormap? (1=yes, 0=no) [default=1]: ');
+        if isempty(use_custom_colormap_choice) || use_custom_colormap_choice == 1
+            use_custom_colormap = true;
+        else
+            use_custom_colormap = false;
+        end
+        
+        cz_scale_input = input('  Scale type for c_N (linear/log) [default=log]: ', 's');
+        if isempty(cz_scale_input)
+            cz_scale = 'log';
+        else
+            cz_scale = cz_scale_input;
+        end
+        
+        if strcmp(cz_scale, 'log')
+            clim_Cz = [0.01, 0.1];
+        else
+            clim_Cz = [0, 0.05];
+        end
+        
+        clim_totrad = [5e5, 1e7];
+        clim_nerad = [5e5, 1e7];
+        
+        plot_radiation_Cz_distribution_simple(all_radiationData, domain, ...
+            'use_custom_colormap', use_custom_colormap, ...
+            'cz_scale', cz_scale, ...
+            'clim_totrad', clim_totrad, ...
+            'clim_nerad', clim_nerad, ...
+            'clim_Cz', clim_Cz);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 187: N ionization source (N0->N1+) background + Total N flow pattern + Stagnation points
+    % ------------------------------------------------------------------------
+    script_index = 187;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: N ionization source & flow pattern with stagnation points ---\n', script_index);
+        
+        % 询问colorbar范围，按回车使用默认值 [1e21, 1e23]
+        fprintf('You can customize the colorbar range for S_ion (N0->N1+).\n');
+        cb_min = input('  Min value (m^-3 s^-1), press Enter to use default 1e21: ');
+        cb_max = input('  Max value (m^-3 s^-1), press Enter to use default 1e23: ');
+        if isempty(cb_min) && isempty(cb_max)
+            custom_colorbar = [];
+            fprintf('Using default colorbar range [1e21, 1e23].\n');
+        else
+            if isempty(cb_min), cb_min = 1e21; end
+            if isempty(cb_max), cb_max = 1e23; end
+            custom_colorbar = [cb_min, cb_max];
+            fprintf('Using custom colorbar range [%.3e, %.3e].\n', cb_min, cb_max);
+        end
+        
+        % 询问是否显示通量比例尺图例，默认不显示
+        fprintf('Show flux scale legend? (y/n) [default: n]: ');
+        show_scale_input = input('', 's');
+        if strcmpi(show_scale_input, 'y') || strcmpi(show_scale_input, 'yes')
+            show_flux_scale = true;
+            fprintf('Flux scale legend will be displayed.\n');
+        else
+            show_flux_scale = false;
+            fprintf('Flux scale legend will NOT be displayed.\n');
+        end
+        
+        % 询问停滞点显示模式
+        fprintf('Stagnation point display mode:\n');
+        fprintf('  0 = Original (keep first & last, max 2 per flux tube) [default]\n');
+        fprintf('  1 = Divertor priority (filter by divertor region)\n');
+        fprintf('  2 = Show ALL (no filtering)\n');
+        stag_mode_input = input('Enter mode (0/1/2) [default: 0]: ');
+        if isempty(stag_mode_input) || ~ismember(stag_mode_input, [0, 1, 2])
+            stagnation_mode = 0;
+            fprintf('Using default mode 0 (original: first & last, max 2).\n');
+        else
+            stagnation_mode = stag_mode_input;
+            if stagnation_mode == 0
+                fprintf('Mode 0: Original logic (first & last, max 2 per flux tube).\n');
+            elseif stagnation_mode == 1
+                fprintf('Mode 1: Divertor priority filtering.\n');
+            else
+                fprintf('Mode 2: Show ALL stagnation points (no filtering).\n');
+            end
+        end
+        
+        % 调用N版本绘图函数
+        plot_N_ionization_source_and_flow_pattern_with_stagnation(all_radiationData, custom_colorbar, show_flux_scale, stagnation_mode);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 188: 绘制计算网格中的总N离子源项（使用sna数据）
+    % ------------------------------------------------------------------------
+    script_index = 188;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Total N ionization source (sna) on computational grid ---\n', script_index);
+        fprintf('Data source: plasma.sna (coefficients) + plasma.na (N densities), guard cells removed.\n');
+        plot_total_N_ionization_source_computational_grid(all_radiationData);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 189: 绘制计算网格上的rsana电离源分布（可选价态，N1+-N7+）
+    % ------------------------------------------------------------------------
+    script_index = 189;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: N ionization source (rsana) on computational grid ---\n', script_index);
+        fprintf('Data source: plasma.rsana, plotted on computational grid (imagesc, no guard cells).\n');
+        
+        fprintf('\nSelect charge state plotting mode:\n');
+        fprintf(' 1: Plot specified charge states individually\n');
+        fprintf(' 2: Plot combined total over a specified range\n');
+        fprintf(' 3: Plot combined total N1+ to N7+ (default)\n');
+        mode_choice = input('Enter choice (1-3) [default=1]: ');
+        if isempty(mode_choice) || ~ismember(mode_choice, [1, 2, 3])
+            mode_choice = 1;
+        end
+        
+        default_states = 1:7;
+        charge_state_groups = {};
+        
+        switch mode_choice
+            case 1
+                charge_state_input = input('Enter charge state indices [default=1:7]: ');
+                if isempty(charge_state_input)
+                    charge_state_input = default_states;
+                end
+                charge_state_input = unique(round(charge_state_input(:)'));
+                charge_state_input = charge_state_input(charge_state_input >= 1 & charge_state_input <= 7);
+                if isempty(charge_state_input)
+                    charge_state_input = default_states;
+                end
+                charge_state_groups = num2cell(charge_state_input);
+            case 2
+                range_input = input('Enter charge state range [default=1:7]: ');
+                if isempty(range_input)
+                    range_values = default_states;
+                elseif numel(range_input) == 2
+                    range_values = round(range_input(1)):round(range_input(2));
+                else
+                    range_values = unique(round(range_input(:)'));
+                end
+                range_values = range_values(range_values >= 1 & range_values <= 7);
+                if isempty(range_values)
+                    range_values = default_states;
+                end
+                charge_state_groups = {range_values};
+            case 3
+                charge_state_groups = {default_states};
+        end
+        
+        plot_N_ionization_source_rsana_computational_grid(all_radiationData, charge_state_groups);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 191: H(Zeff) 和 frad 与 Zeff,CEI-1 关系（两张图，子图重新排序以便叠放）
+    % ------------------------------------------------------------------------
+    script_index = 191;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: H(Zeff) and frad vs Zeff,CEI-1 (2-figure layout) ---\n', script_index);
+        fprintf('    Layout: Fig1 -> frad (top) + H (bottom); Fig2 -> frad_core / frad_SOL / frad_div (top to bottom)\n');
+        fprintf('    Shared X axis: Zeff,CEI-1; ticks shown on the bottom subplot of each figure for cleaner stacking.\n');
+        fprintf('    Subplot sizes are aligned for single-column PDF/PPT insertion.\n');
+        
+        % 坐标轴范围模式选择
+        fprintf('\nSelect axis range mode:\n');
+        fprintf('  1: Fixed axis ranges (default, suitable for cross-case comparison)\n');
+        fprintf('  2: Auto axis ranges (MATLAB auto-fit, with nice tick values at boundaries)\n');
+        axis_mode_choice = input('Enter choice (1 or 2) [default=1]: ');
+        if isempty(axis_mode_choice) || ~ismember(axis_mode_choice, [1, 2])
+            axis_mode_choice = 1;
+        end
+        use_auto_axis = (axis_mode_choice == 2);
+        
+        % 直接使用硬编码图例模式（fav BT + unfav BT + 4个充杂速率）
+        usePresetLegends = false;
+        showLegendsForDirNames = true;
+        useHardcodedLegends = true;
+        
+        plot_Hzeff_frad_vs_Zeff_split_figures_N(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames, useHardcodedLegends, use_auto_axis);
     end
     
     % ------------------------------------------------------------------------
