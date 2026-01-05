@@ -51,7 +51,7 @@ while true % Start plotting script selection loop
     clear plot_divertor_target_profiles
     clear plot_ExB_drift_on_physical_grid
     clear plot_N_ExB_drift_flow_pattern
-    clear plot_potential_on_physical_grid
+    clear plot_potential_on_physical_grid_N
     clear plot_Ne8_ionization_source_and_flux_statistics
     clear plot_Ne_neutral_density_triangle
     clear plot_core_edge_main_ion_density_and_electron_temperature
@@ -104,11 +104,12 @@ while true % Start plotting script selection loop
     clear plot_potential_ExB_flow_pattern_power_law
     clear plot_potential_ExB_radial_drift_physical_grid_cellflat
     clear plot_potential_ExB_radial_drift_physical_grid_cellflat_gray
-    clear plot_potential_physical_grid_segmented_colormap_cellflat
+    clear plot_potential_physical_grid_segmented_colormap_cellflat_N
     clear plot_radiation_Cz_distribution_separate_figs
     clear plot_radiation_Cz_distribution_simple
     clear plot_N_ion_flux_distribution_computational_grid
     clear plot_Hzeff_frad_vs_Zeff_split_figures_N
+    clear plot_impurity_radiation_and_particles_N
     
     fprintf('\n========================================================================\n');
     fprintf('  Choose plotting scripts to execute:\n');
@@ -130,7 +131,7 @@ while true % Start plotting script selection loop
     fprintf('26: Radiation distribution and impurity density distribution (2D contour)\n');
     fprintf('28: Radiation distribution and Cz distribution (2-3 cases, with inner/outer divertor radiation statistics)\n');
     fprintf('38: Ne Neutral Density distribution (2D contour, log scale)\n');
-    fprintf('43: Potential distribution on physical grid, radial profiles, and core vs SOL poloidal comparison\n');
+    fprintf('43: Potential map on physical grid with/without divertor leg overlays and inner/outer radial profiles\n');
     fprintf('45: Ne Neutral Density distribution (triangular mesh, log scale)\n');
     fprintf('65: Radiation distribution individual (each case separate figure, 1x2 layout, with statistics)\n');
     fprintf('84: Ne neutral density distribution in computational grid (log scale)\n');
@@ -240,7 +241,7 @@ while true % Start plotting script selection loop
     fprintf('44: Ne8+ ionization source inside separatrix and flux through separatrix statistics (grouped bar charts)\n');
     fprintf('46: Core Edge Ne ion charge state Zeff contributions (poloidal distribution)\n');
     fprintf('47: Core Edge main ion density (volume-weighted) and electron temperature (energy-weighted) averages (grouped bar charts)\n');
-    fprintf('48: Core Edge total Zeff and high-charge N Zeff comparison (1*2 grouped bars)\n');
+    fprintf('48: Core Edge Zeff,CEI and species contribution breakdown (stacked bars)\n');
     fprintf('49: Ne8+ ionization source inside separatrix (grouped bar charts)\n');
     fprintf('89: Core electron temperature ranking (energy-weighted average by electron density and volume, N cases)\n');
     fprintf('122: Core edge N ion density stacked bar chart (volume-weighted poloidal average, grid 26-73, radial index 2, N1+ to N7+)\n');
@@ -266,6 +267,7 @@ while true % Start plotting script selection loop
     fprintf('55: Custom CSV data export (select specific cases and variables to export)\n');
     fprintf('75: Impurity flux and density comparison analysis (IDE/ODE leakage, separatrix flux, target recycling, Ne ion densities)\n');
     fprintf('77: Ne ion flux positive/negative analysis (IDE/ODE flux separation + X-point radial flux)\n');
+    fprintf('182: N impurity radiation and particle distribution (Python style replication)\n');
     fprintf('199: test script\n');
     fprintf('========================================================================\n');
     fprintf('  Enter the script numbers to execute, separated by spaces (e.g., 1 3 5), or enter "all" to select all, "r" to refresh scripts, "00" to close all figures, "000" to maximize all figures, or "0" to exit:\n');
@@ -1206,14 +1208,49 @@ while true % Start plotting script selection loop
     
     % ------------------------------------------------------------------------
     % 43: 绘制物理网格中的电势分布
+    % 包含：2D电势分布图、内外偏滤器径向剖面
     % ------------------------------------------------------------------------
     script_index = 43;
     if ismember(script_index, script_choices)
-        fprintf('\n--- Executing script %d: Potential distribution on physical grid, radial profiles, and core vs SOL poloidal comparison ---\n', script_index);
+        fprintf('\n--- Executing script %d: Potential map on physical grid with divertor leg overlays and inner/outer radial profiles ---\n', script_index);
+        
         % 询问绘图范围domain
         domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
-        % 调用新的绘图函数
-        plot_potential_on_physical_grid(all_radiationData, domain);
+        
+        % 询问径向剖面Y轴范围（可选）
+        y_axis_input = input('Radial profile Y-axis range [min max], press Enter for auto scaling: ', 's');
+        if isempty(strtrim(y_axis_input))
+            radial_ylim = [];
+        else
+            manual_limits = str2num(y_axis_input); %#ok<ST2NM>
+            if numel(manual_limits) == 2 && all(isfinite(manual_limits))
+                radial_ylim = manual_limits(:).';  % 转成行向量 [min max]
+            else
+                fprintf('Invalid input detected, fallback to auto scaling.\n');
+                radial_ylim = [];
+            end
+        end
+        
+        % 询问是否叠加绘制偏滤器腿部线条
+        overlay_input = input('Do you want to overlay divertor leg lines? (y/n) [default=y]: ', 's');
+        if strcmpi(overlay_input, 'n')
+            overlay_lines = false;
+        else
+            overlay_lines = true;
+        end
+        
+        % 询问 Colormap 选择
+        colormap_choice = input('Select colormap (1: custom_bwr, 2: jet [default]): ');
+        if isempty(colormap_choice) || colormap_choice == 2
+            colormap_option = 'jet';
+            disp('Using jet colormap.');
+        else
+            colormap_option = 'custom_bwr';
+            disp('Using custom_bwr colormap.');
+        end
+        
+        % 调用绘图函数（与Ne脚本使用相同函数，电势分布与杂质类型无关）
+        plot_potential_on_physical_grid_N(all_radiationData, domain, radial_ylim, overlay_lines, colormap_option);
     end
     
     % ------------------------------------------------------------------------
@@ -1319,43 +1356,24 @@ while true % Start plotting script selection loop
     end
     
     % ------------------------------------------------------------------------
-    % 48: 绘制芯部边缘总体Zeff和Ne8+ Zeff对比图（1*2布局分组柱状图）
+    % 48: 绘制芯部边缘总体Zeff和N7+ Zeff对比图（1*2布局分组柱状图）
     % ------------------------------------------------------------------------
     script_index = 48;
     if ismember(script_index, script_choices)
         fprintf('\n--- Executing script %d: Core Edge total Zeff and high-charge N Zeff comparison (1*2 layout) ---\n', script_index);
         
-        % 提示用户选择图例名称方式
-        prompt = 'Please select the legend naming method:\n  1: Use preset legend names (favorable Bt, unfavorable Bt, w/o drift)\n  2: Use default directory names\nPlease choose (1 or 2) [default=2]: ';
-        legendChoiceStr = input(prompt, 's');
-        
-        usePresetLegends = false; % 默认使用目录名
-        showLegendsForDirNames = true; % 默认当使用目录名时显示图例
-        
-        if isempty(legendChoiceStr) || strcmpi(legendChoiceStr, '2')
-            usePresetLegends = false;
-            % 当使用目录名作为图例时，询问是否显示图例
-            showLegendsPrompt = 'Show legends when using directory names? (y/n) [default=y]: ';
-            showLegendsChoice = input(showLegendsPrompt, 's');
-            if isempty(showLegendsChoice) || strcmpi(showLegendsChoice, 'y')
-                showLegendsForDirNames = true;
-            elseif strcmpi(showLegendsChoice, 'n')
-                showLegendsForDirNames = false;
-            else
-                fprintf('Invalid input for showing legends, defaulting to showing legends.\n');
-                showLegendsForDirNames = true;
-            end
-        elseif strcmpi(legendChoiceStr, '1')
-            usePresetLegends = true;
-            showLegendsForDirNames = true;
-        else
-            fprintf('Invalid selection for legend naming, defaulting to using directory name as legend and showing legends.\n');
-            usePresetLegends = false;
-            showLegendsForDirNames = true;
+        % Y轴范围模式选择
+        fprintf('\nSelect Y-axis range mode:\n');
+        fprintf('  1: Fixed axis ranges (default, suitable for cross-case comparison)\n');
+        fprintf('  2: Auto axis ranges (MATLAB auto-fit, with nice tick values at boundaries)\n');
+        axis_mode_choice = input('Enter choice (1 or 2) [default=1]: ');
+        if isempty(axis_mode_choice) || ~ismember(axis_mode_choice, [1, 2])
+            axis_mode_choice = 1;
         end
+        use_auto_axis = (axis_mode_choice == 2);
         
         % 调用 N 版芯部边缘 Zeff 对比脚本（总 Zeff + 最高价态 N Zeff）
-        plot_core_edge_total_and_N_highcharge_Zeff_comparison(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames);
+        plot_core_edge_total_and_N_highcharge_Zeff_comparison(all_radiationData, groupDirs, use_auto_axis);
     end
     
     % ------------------------------------------------------------------------
@@ -3414,19 +3432,30 @@ while true % Start plotting script selection loop
     end
     
     % ------------------------------------------------------------------------
+    % 182: N杂质辐射与粒子分布对比（Python风格复刻）
+    % ------------------------------------------------------------------------
+    script_index = 182;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: N Impurity radiation and particle distribution (Python Style) ---\n', script_index);
+        
+        plot_impurity_radiation_and_particles_N(all_radiationData, groupDirs);
+    end
+    
+    % ------------------------------------------------------------------------
     % 183: 仅绘制电势分布（分块自定义colormap + cell-flat）
     % ------------------------------------------------------------------------
     script_index = 183;
     if ismember(script_index, script_choices)
-        fprintf('\n--- Executing script %d: Potential map (segmented colormap, cell-flat) ---\n', script_index);
-        fprintf('    - Segmented colormap for potential wells visualization\n\n');
+        fprintf('\n--- Executing script %d: Potential map (enhanced colormap, cell-flat) ---\n', script_index);
+        fprintf('    - Enhanced colormap: cold colors for negative, warm colors for positive\n');
+        fprintf('    - Improved resolution for small negative values (-30V to 0V)\n\n');
         
         domain = input('Which domain (0-whole, 1-updiv, 2-downdiv)? ');
         if isempty(domain) || ~ismember(domain, [0, 1, 2])
             domain = 0;
         end
         
-        plot_potential_physical_grid_segmented_colormap_cellflat(all_radiationData, domain);
+        plot_potential_physical_grid_segmented_colormap_cellflat_N(all_radiationData, domain);
     end
     
     % ------------------------------------------------------------------------
