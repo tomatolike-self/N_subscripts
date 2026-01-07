@@ -89,6 +89,7 @@ while true % Start plotting script selection loop
     clear plot_Ne_regional_source_terms_bar_comparison
     clear plot_enhanced_ExB_vs_total_flux_comparison
     clear plot_enhanced_radial_flux_components_comparison_N
+    clear plot_separatrix_outer_radial_flux_decomposition_by_charge_N
     clear plot_N_ExB_drift_flux_with_stagnation_linear
     clear plot_Ne_total_force_flow_pattern plot_Ne_charge_state_force_flow_pattern
     clear plot_N_ionization_rate_source_and_poloidal_stagnation_point
@@ -144,7 +145,6 @@ while true % Start plotting script selection loop
     fprintf('167: N ion density distribution on physical grid (cell-flat, selectable charge states N1+-N7+)\n');
     fprintf('168: Potential ExB flow pattern on physical grid (POWER LAW arrow scaling)\n');
     fprintf('173: Radiation and Cz distribution separate figures (each case one figure, 1x3 layout)\n');
-    fprintf('175: Enhanced separatrix radial flux components comparison (total vs diffusive vs ExB, N1+ to N7+)\n');
     fprintf('183: Potential map on physical grid (segmented custom colormap, cell-flat, no arrows)\n');
     fprintf('186: Radiation and c_N distribution SIMPLE (1x3: P_rad, P_rad,N, c_N; plotting only)\n');
     fprintf('\n');
@@ -203,6 +203,8 @@ while true % Start plotting script selection loop
     fprintf('99: Main SOL separatrix total ExB radial flux distribution (Ne1+ to Ne10+ total charge states along poloidal grid)\n');
     fprintf('100: Core region force distribution (separatrix inner first grid, poloidal distribution of ion forces by charge state)\n');
     fprintf('101: Separatrix parallel velocity poloidal distribution (main ion and Ne charge states parallel velocity poloidal projection at separatrix inner first grid)\n');
+    fprintf('175: Enhanced separatrix radial flux components comparison (total vs diffusive vs ExB, N1+ to N7+)\n');
+    fprintf('195: Separatrix outer radial flux decomposition by charge state (Conv vs Diff-like, N1+ to N7+)\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│               [4] FLOW PATTERN & VELOCITY ANALYSIS                 │\n');
@@ -3704,6 +3706,19 @@ while true % Start plotting script selection loop
         useHardcodedLegends = true;
         
         plot_Hzeff_frad_vs_Zeff_split_figures_N(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames, useHardcodedLegends, use_auto_axis);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 195: Separatrix外径向通量分解（按价态：Conv vs Diff-like）
+    % ------------------------------------------------------------------------
+    script_index = 195;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Separatrix outer radial flux decomposition by charge state ---\n', script_index);
+        fprintf('This plot decomposes radial flux at separatrix into convective and diffusive-like components.\n');
+        fprintf('Each charge state (N1+ to N7+) shows 3 bars: Total, Conv (cvla+ExB), Diff-like (rest).\n');
+        fprintf('Based on b2tfnb.F source code structure with drift_style=1.\n');
+        
+        plot_separatrix_outer_radial_flux_decomposition_by_charge_N(all_radiationData);
     end
     
     % ------------------------------------------------------------------------
