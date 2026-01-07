@@ -24,6 +24,7 @@ function plot_core_edge_n_density_stacked_bar(all_radiationData, groupDirs)
 %   - N系统：N1+到N7+（共7个带电价态），plasma.na索引4-10
 %   - 芯部边缘区域：极向26:73，径向2
 %   - 体积加权平均：sum(n_i * V_i) / sum(V_i)
+%   - Y轴数据已缩放至 10^17 m^-3 量级，标签中显式写明指数，避免导出时丢失
 % =========================================================================
 
 fprintf('\n=== Creating Core Edge N Ion Density Stacked Bar Chart ===\n');
@@ -34,6 +35,11 @@ CORE_POL_START = 26;            % 芯部极向起始
 CORE_POL_END = 73;              % 芯部极向结束
 IMPURITY_START_INDEX = 3;       % N0在plasma.na中的索引（中性N）
 MAX_N_CHARGE = 7;               % N系统最高价态（N1+到N7+）
+
+% Y轴缩放因子：将密度值缩放至 10^17 m^-3 量级，在Y轴刻度上直接显示数值
+% 避免MATLAB自动指数在导出时丢失的问题
+Y_SCALE_FACTOR = 1e17;
+Y_SCALE_EXPONENT = 17;
 
 %% 绘图属性常量
 FONT_NAME = 'Times New Roman';
@@ -156,6 +162,10 @@ end
 % 清理NaN和Inf
 density_matrix(~isfinite(density_matrix)) = 0;
 
+% 将密度数据缩放（除以Y_SCALE_FACTOR），使Y轴刻度值为合理数值
+% 这样在导出图片时，刻度标签直接显示数值，不依赖MATLAB的自动指数显示
+density_matrix_scaled = density_matrix / Y_SCALE_FACTOR;
+
 %% 计算X轴位置（组间有间隔）
 x_positions = zeros(1, num_cases);
 case_idx = 0;
@@ -193,15 +203,15 @@ set(fig, 'DefaultTextInterpreter', 'latex', ...
     'DefaultAxesTickLabelInterpreter', 'latex', ...
     'DefaultLegendInterpreter', 'latex');
 
-%% 绘制堆叠柱状图
+%% 绘制堆叠柱状图（使用缩放后的数据）
 hold on;
 
 if num_cases == 1
     % 单算例：bar直接使用列向量
-    bh = bar(x_positions, density_matrix, BAR_WIDTH, 'stacked');
+    bh = bar(x_positions, density_matrix_scaled, BAR_WIDTH, 'stacked');
 else
     % 多算例：需要转置，bar期望每行是一个算例
-    bh = bar(x_positions, density_matrix', BAR_WIDTH, 'stacked');
+    bh = bar(x_positions, density_matrix_scaled', BAR_WIDTH, 'stacked');
 end
 
 % 设置每个价态的颜色
@@ -226,8 +236,14 @@ xticklabels(puff_rate_labels);
 xlim([min(x_positions) - 0.5, max(x_positions) + 0.5]);
 
 % 坐标轴标签
+% X轴标签：N充气速率
 xlabel('$\Gamma_{\mathrm{puff,N}}$ ($\times 10^{20}$ s$^{-1}$)', 'FontSize', LABEL_FONT_SIZE);
-ylabel('$n_{\mathrm{N}}$ (m$^{-3}$)', 'FontSize', LABEL_FONT_SIZE);
+
+% Y轴标签：显式写明指数项，避免导出时丢失自动指数
+% 由于数据已缩放（除以10^17），Y轴刻度值为合理数值（如0, 1, 2...）
+% 标签中写明单位包含 ×10^17
+ylabel_str = sprintf('$n_{\\mathrm{N}}$ ($\\times 10^{%d}$ m$^{-3}$)', Y_SCALE_EXPONENT);
+ylabel(ylabel_str, 'FontSize', LABEL_FONT_SIZE);
 
 % 坐标轴属性
 ax = gca;

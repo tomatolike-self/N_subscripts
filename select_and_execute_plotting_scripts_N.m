@@ -54,7 +54,8 @@ while true % Start plotting script selection loop
     clear plot_potential_on_physical_grid_N
     clear plot_Ne8_ionization_source_and_flux_statistics
     clear plot_Ne_neutral_density_triangle
-    clear plot_core_edge_main_ion_density_and_electron_temperature
+    clear plot_ne_te_distributions_N
+    clear plot_core_edge_main_ion_density_and_electron_temperature_N
     clear plot_core_edge_total_and_N_highcharge_Zeff_comparison
     clear plot_Ne8_ionization_source_inside_separatrix_grouped
     clear plot_frad_vs_zeff_relationship plot_n_hzeff_relationship plot_frad_imp_vs_zeff_relationship
@@ -87,6 +88,8 @@ while true % Start plotting script selection loop
     clear plot_flux_tube_charge_state_forces
     clear plot_Ne_regional_source_terms_bar_comparison
     clear plot_enhanced_ExB_vs_total_flux_comparison
+    clear plot_enhanced_radial_flux_components_comparison_N
+    clear plot_N_ExB_drift_flux_with_stagnation_linear
     clear plot_Ne_total_force_flow_pattern plot_Ne_charge_state_force_flow_pattern
     clear plot_N_ionization_rate_source_and_poloidal_stagnation_point
     clear plot_flux_tube_velocity_analysis
@@ -126,7 +129,7 @@ while true % Start plotting script selection loop
     fprintf(' 6: Radiation and Zeff distribution plot\n');
     fprintf('10: Impurity 1-7+ density distribution, and all density distribution\n');
     fprintf('12: Ne ion and D+ line radiation distributions (each charge state, Line Radiation Only)\n');
-    fprintf('19: 2D distribution plot of electron density and electron temperature (expected input: 3 groups)\n');
+    fprintf('19: 2D distribution plot of (ne) electron density and (Te) electron temperature (supports multiple groups)\n');
     fprintf('20: 2D distribution plot of total impurity density (3 cases, separate figures)\n');
     fprintf('26: Radiation distribution and impurity density distribution (2D contour)\n');
     fprintf('28: Radiation distribution and Cz distribution (2-3 cases, with inner/outer divertor radiation statistics)\n');
@@ -141,6 +144,7 @@ while true % Start plotting script selection loop
     fprintf('167: N ion density distribution on physical grid (cell-flat, selectable charge states N1+-N7+)\n');
     fprintf('168: Potential ExB flow pattern on physical grid (POWER LAW arrow scaling)\n');
     fprintf('173: Radiation and Cz distribution separate figures (each case one figure, 1x3 layout)\n');
+    fprintf('175: Enhanced separatrix radial flux components comparison (total vs diffusive vs ExB, N1+ to N7+)\n');
     fprintf('183: Potential map on physical grid (segmented custom colormap, cell-flat, no arrows)\n');
     fprintf('186: Radiation and c_N distribution SIMPLE (1x3: P_rad, P_rad,N, c_N; plotting only)\n');
     fprintf('\n');
@@ -219,6 +223,7 @@ while true % Start plotting script selection loop
     fprintf('88: Main ion (D+) flow pattern in computational grid\n');
     fprintf('95: Ne total force flow pattern in computational grid (sum of all charge states)\n');
     fprintf('96: Ne charge state force flow pattern in computational grid (supports specific charge state selection)\n');
+    fprintf('177: N ion ExB drift flux with stagnation points (linear colormap, N1+ to N7+)\n');
     fprintf('178: N ion flux distribution (computational grid, linear colormap, normalized arrows, supports total / subset sum / per-charge figures + auto/manual colorbar)\n');
     fprintf('187: N ionization source (N0->N1+) background + Total N flow pattern + Stagnation points\n');
     fprintf('\n');
@@ -762,15 +767,22 @@ while true % Start plotting script selection loop
     end
     
     % ------------------------------------------------------------------------
-    % 19: 绘制电子密度和电子温度的二维分布图（预期输入：3组）
+    % 19: 绘制电子密度和电子温度的二维分布图（支持多组算例，每组一张图）
     % ------------------------------------------------------------------------
     script_index = 19;
     if ismember(script_index, script_choices)
         fprintf('\n--- Executing script %d: 2D distribution plot of electron density and electron temperature ---\n', script_index);
+        fprintf('    This script generates one figure per group, each containing ne and te distributions.\n');
+        fprintf('    Number of groups: %d\n', length(groupDirs));
+        
         % 询问domain
         domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
-        % 调用拆分的脚本函数
-        plot_ne_te_distributions_3cases(all_radiationData, domain);
+        if isempty(domain)
+            domain = 0;  % 默认全域
+        end
+        
+        % 调用N版本的绘图脚本（支持多组多算例）
+        plot_ne_te_distributions_N(all_radiationData, groupDirs, domain);
     end
     
     % ------------------------------------------------------------------------
@@ -1351,8 +1363,8 @@ while true % Start plotting script selection loop
             showLegendsForDirNames = true;
         end
         
-        % 调用新的脚本函数
-        plot_core_edge_main_ion_density_and_electron_temperature(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames);
+        % 调用N版本的芯部边缘主离子密度和电子温度分析脚本
+        plot_core_edge_main_ion_density_and_electron_temperature_N(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames);
     end
     
     % ------------------------------------------------------------------------
@@ -3412,6 +3424,49 @@ while true % Start plotting script selection loop
             'clim_totrad', clim_totrad, ...
             'clim_nerad', clim_nerad, ...
             'clim_Cz', clim_Cz);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 175: 分离面径向通量三分量对比（总通量 / 扩散通量 / ExB通量）
+    % ------------------------------------------------------------------------
+    script_index = 175;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Enhanced separatrix radial flux components comparison ---\n', script_index);
+        fprintf('This plot shows total, diffusive, and ExB radial fluxes across the separatrix.\n');
+        fprintf('Colors represent charge-state groups for N1+ to N7+.\n');
+        
+        fprintf('\nChoose legend display mode:\n');
+        fprintf('  1: Simplified mode - 4 charge state groups (N1-2+, N3-4+, N5-6+, N7+)\n');
+        fprintf('  2: Full charge state mode - 7 separate charge states (N1+ to N7+)\n');
+        legend_mode_choice = input('Please choose (1 or 2) [default=1]: ');
+        
+        if isempty(legend_mode_choice) || legend_mode_choice == 1
+            fprintf('Using simplified legend mode: 4 charge state groups.\n');
+            use_full_charge_state_mode = false;
+        else
+            fprintf('Using full charge state mode: 7 separate charge states.\n');
+            use_full_charge_state_mode = true;
+        end
+        
+        plot_enhanced_radial_flux_components_comparison_N(all_radiationData, groupDirs, false, use_full_charge_state_mode);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 177: 绘制N离子ExB漂移通量分布图（线性色标 + 停滞点）
+    % ------------------------------------------------------------------------
+    script_index = 177;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: N ion ExB drift flux with stagnation points (linear colormap) ---\n', script_index);
+        fprintf('    Features:\n');
+        fprintf('    - Background: ExB drift flux magnitude (linear color scale)\n');
+        fprintf('    - Flux definition: density × ExB velocity × corresponding face area\n');
+        fprintf('    - Arrows: ExB drift flux direction (normalized)\n');
+        fprintf('    - Stagnation points: Parallel velocity and Poloidal velocity\n');
+        fprintf('    - Supports total flux (N1+ to N7+) or specific charge state selection\n');
+        fprintf('    - Colorbar: Auto-adjusted for every figure\n');
+        
+        % 调用N版本的ExB漂移通量绘图脚本
+        plot_N_ExB_drift_flux_with_stagnation_linear(all_radiationData);
     end
     
     % ------------------------------------------------------------------------

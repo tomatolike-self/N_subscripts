@@ -31,14 +31,11 @@ if nargin < 2 || isempty(domain)
     domain = 0;
 end
 
-%% 全局绘图设置
+%% 全局绘图设置（仅设置解释器和字体类型，字体大小在保存前显式设置）
 set(0, 'DefaultAxesFontName', 'Times New Roman');
 set(0, 'DefaultTextFontName', 'Times New Roman');
-set(0, 'DefaultAxesFontSize', 28);
-set(0, 'DefaultTextFontSize', 28);
-set(0, 'DefaultLineLineWidth', 1.5);
 set(0, 'DefaultLegendFontName', 'Times New Roman');
-set(0, 'DefaultLegendFontSize', 24);
+set(0, 'DefaultLineLineWidth', 1.5);
 set(0, 'DefaultTextInterpreter', 'latex');
 set(0, 'DefaultAxesTickLabelInterpreter', 'latex');
 set(0, 'DefaultLegendInterpreter', 'latex');
@@ -181,14 +178,20 @@ for i_case = 1:numel(all_radiationData)
     
     %% 区域缩放
     if domain == 1
-        xlim(ax, [1.30, 2.00]);
-        ylim(ax, [0.50, 1.20]);
+        % 上偏滤器区域（参考参考图片范围）
+        xlim(ax, [1.30, 1.90]);
+        ylim(ax, [0.60, 1.20]);
+        % 显式设置刻度，确保首尾显示明确数值
+        set(ax, 'XTick', 1.3:0.2:1.9, 'YTick', 0.6:0.2:1.2);
         if isfield(radData, 'structure')
             plotstructure(radData.structure, 'color', 'k', 'LineWidth', 2, 'HandleVisibility', 'off');
         end
     elseif domain == 2
-        xlim(ax, [1.30, 2.05]);
-        ylim(ax, [-1.15, -0.40]);
+        % 下偏滤器区域
+        xlim(ax, [1.30, 1.90]);
+        ylim(ax, [-1.10, -0.50]);
+        % 显式设置刻度，确保首尾显示明确数值
+        set(ax, 'XTick', 1.3:0.2:1.9, 'YTick', -1.1:0.2:-0.5);
         if isfield(radData, 'structure')
             plotstructure(radData.structure, 'color', 'k', 'LineWidth', 2, 'HandleVisibility', 'off');
         end
@@ -200,6 +203,21 @@ for i_case = 1:numel(all_radiationData)
         set(dcm_obj, 'SnapToDataVertex', 'off');
     end
     set(dcm_obj, 'UpdateFcn', @(src, evt) datacursor_potential(src, evt, rc_core, zc_core, potential_core));
+    
+    %% 保存Figure前：显式设置字体大小（确保跨平台兼容性）
+    % 问题：全局默认设置在跨MATLAB版本/平台时可能失效
+    % 解决：直接在坐标轴对象上设置字体属性
+    TICK_FONT_SIZE = 28;     % 坐标轴刻度数字字体大小
+    LABEL_FONT_SIZE = 32;    % 坐标轴标签字体大小
+    COLORBAR_FONT_SIZE = 24; % colorbar刻度字体大小
+    
+    set(ax, 'FontSize', TICK_FONT_SIZE, 'FontName', 'Times New Roman');
+    set(h_cb, 'FontSize', COLORBAR_FONT_SIZE, 'FontName', 'Times New Roman');
+    
+    % 重新设置标签字体（确保不被覆盖）
+    xlabel(ax, '$R$ (m)', 'Interpreter', 'latex', 'FontSize', LABEL_FONT_SIZE);
+    ylabel(ax, '$Z$ (m)', 'Interpreter', 'latex', 'FontSize', LABEL_FONT_SIZE);
+    title(ax, '$\phi$ (V)', 'Interpreter', 'latex', 'FontSize', LABEL_FONT_SIZE);
     
     %% 保存Figure
     safe_name = regexprep(dirName, '[^a-zA-Z0-9_\-\.]', '_');
