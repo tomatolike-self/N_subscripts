@@ -114,6 +114,9 @@ while true % Start plotting script selection loop
     clear plot_N_ion_flux_distribution_computational_grid
     clear plot_Hzeff_frad_vs_Zeff_split_figures_N
     clear plot_impurity_radiation_and_particles_N
+    clear plot_OMP_IMP_impurity_distribution_separate_figs
+    clear plot_downstream_pol_profiles_separate_figs
+    clear plot_upstream_downstream_profiles_for_export;  % 确保使用最新版本
     
     fprintf('\n========================================================================\n');
     fprintf('  Choose plotting scripts to execute:\n');
@@ -234,13 +237,16 @@ while true % Start plotting script selection loop
     fprintf('└─────────────────────────────────────────────────────────────────────┘\n');
     fprintf(' 2: Upstream parameter distributions (ne, te, nimp, Zeff), add ne te transport coefficients (supports 1-3 cases)\n');
     fprintf('14: OMP/IMP impurity distribution and ne, te profiles\n');
-    fprintf('18: Downstream parameter radial profiles (ne, te, nimp)\n');
+    fprintf('18: Downstream parameter radial profiles (ne, te, n_N, q_pol) with selectable exponent-label mode\n');
     fprintf('21: Radial profiles of electron density, electron temperature, and transport coefficients at the upstream OMP\n');
     fprintf('32: OMP, IMP, Core Edge profiles (ne, ni, Zeff)\n');
     fprintf('40: Divertor Target Profiles (ne, Te, Ti, D+ Flux, Ne Flux)\n');
     fprintf('58: OMP and Divertor Target ne, Te profiles (upstream OMP radial + inner/outer target profiles)\n');
     fprintf('71: Ne ion charge state radial density profiles (selectable poloidal position, 3x3 subplots + D+ profile)\n');
     fprintf('86: Multi-parameter radial distributions at specified poloidal position (density, temperature, pressure in 4 subplots)\n');
+    fprintf('196: OMP/IMP impurity distribution - SEPARATE FIGURES MODE (uniform canvas for PDF export)\n');
+    fprintf('197: Downstream target profiles - SEPARATE FIGURES MODE (uniform canvas for PDF export)\n');
+    fprintf('198: Combined upstream/downstream profiles for export (12 figs with labels, auto PDF)\n');
     fprintf('\n');
     fprintf('┌─────────────────────────────────────────────────────────────────────┐\n');
     fprintf('│                 [6] CORE-EDGE & ZEFF ANALYSIS                      │\n');
@@ -648,27 +654,96 @@ while true % Start plotting script selection loop
     end
     
     % ------------------------------------------------------------------------
-    % 14: 绘制OMP/IMP杂质分布
+    % 14: 绘制OMP/IMP杂质分布（与Ne脚本功能一致，增加多个可选参数）
     % ------------------------------------------------------------------------
     script_index = 14;
     if ismember(script_index, script_choices)
         fprintf('\n--- Executing script %d: OMP/IMP impurity distribution and ne, te profiles ---\n', script_index);
-        % 提示用户选择图例名称方式
-        prompt = 'Please select the legend naming method:\n  1: Use preset legend names (favorable Bt, unfavorable Bt, w/o drift)\n  2: Use default directory names\nPlease choose (1 or 2): ';
-        legendChoice = input(prompt);
         
-        % 根据用户选择设置 usePresetLegends 变量
-        if legendChoice == 1
+        % 提示用户选择图例类型（与Ne脚本一致）
+        prompt = 'Please select legend type (d: directory name, p: predefined name, m: unfav BT power legend): ';
+        legendChoice = input(prompt, 's'); % 's' 表示输入为字符串
+        
+        usePresetLegends = false; % 默认使用目录名
+        useUnfavBTPowerLegend = false; % 默认不使用unfav BT功率图例
+        
+        if strcmpi(legendChoice, 'm')
+            useUnfavBTPowerLegend = true;
+            fprintf('Using unfav BT power legend mode (unfav B_T 5.5 MW, unfav B_T 7 MW).\n');
+        elseif strcmpi(legendChoice, 'p')
             usePresetLegends = true;
-        elseif legendChoice == 2
-            usePresetLegends = false;
+            fprintf('Using predefined legend mode (favorable B_T, unfavorable B_T, w/o drift).\n');
+        elseif strcmpi(legendChoice, 'd')
+            usePresetLegends = false; % 显式设置，虽然是默认值，但更清晰
+            fprintf('Using directory name as legend.\n');
         else
-            fprintf('Invalid selection, defaulting to using directory name as legend.\n');
-            usePresetLegends = false; % 默认使用目录名称
+            fprintf('Invalid input, defaulting to using directory name as legend.\n');
         end
         
-        % 调用拆分的脚本函数
-        plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, usePresetLegends); % 传递 usePresetLegends 参数
+        % 提示指数标签模式
+        exponentPrompt = 'Select exponent label mode (a: MATLAB auto, m: manual text) [default=m]: ';
+        exponentChoice = input(exponentPrompt, 's');
+        useCustomExponentLabels = true;
+        if strcmpi(exponentChoice, 'a')
+            useCustomExponentLabels = false;
+            fprintf('Using MATLAB automatic exponent labels.\n');
+        elseif strcmpi(exponentChoice, 'm') || isempty(exponentChoice)
+            useCustomExponentLabels = true;
+            fprintf('Using manual LaTeX exponent labels.\n');
+        else
+            fprintf('Invalid choice, defaulting to manual LaTeX exponent labels.\n');
+        end
+        
+        % 询问X轴单位（米或厘米）
+        xUnitChoice = input('Select X-axis unit (m/cm) [default=cm]: ', 's');
+        if strcmpi(xUnitChoice, 'm')
+            xAxisUnit = 'm';
+            fprintf('Using meters for the X-axis.\n');
+        else
+            xAxisUnit = 'cm';
+            if ~isempty(xUnitChoice) && ~strcmpi(xUnitChoice, 'cm')
+                fprintf('Invalid input, defaulting to centimeters for the X-axis.\n');
+            else
+                fprintf('Using centimeters for the X-axis.\n');
+            end
+        end
+        
+        % 询问曲线样式（纯线或点线）
+        styleChoice = input('Select curve style (l: line only, p: point-line) [default=l]: ', 's');
+        if strcmpi(styleChoice, 'p')
+            usePointLineStyle = true;
+            fprintf('Using point-line style (with markers).\n');
+        else
+            usePointLineStyle = false;
+            if ~isempty(styleChoice) && ~strcmpi(styleChoice, 'l')
+                fprintf('Invalid input, defaulting to line-only style.\n');
+            else
+                fprintf('Using line-only style.\n');
+            end
+        end
+        
+        % 询问Y轴范围模式（自动或固定）
+        yAxisChoice = input('Select Y-axis range mode (a: auto, f: fixed) [default=f]: ', 's');
+        if strcmpi(yAxisChoice, 'a')
+            yAxisMode = 'auto';
+            fprintf('Using MATLAB automatic Y-axis limits for all subplots.\n');
+        else
+            yAxisMode = 'fixed';
+            if ~isempty(yAxisChoice) && ~strcmpi(yAxisChoice, 'f')
+                fprintf('Invalid input, defaulting to fixed Y-axis ranges.\n');
+            else
+                fprintf('Using fixed Y-axis ranges (current behavior).\n');
+            end
+        end
+        
+        % 调用拆分的脚本函数，根据用户选择传递参数
+        plot_OMP_IMP_impurity_distribution(all_radiationData, groupDirs, ...
+            'usePresetLegends', usePresetLegends, ...
+            'useUnfavBTPowerLegend', useUnfavBTPowerLegend, ...
+            'useCustomExponentLabels', useCustomExponentLabels, ...
+            'xAxisUnit', xAxisUnit, ...
+            'usePointLineStyle', usePointLineStyle, ...
+            'yAxisMode', yAxisMode);
     end
     
     % ------------------------------------------------------------------------
@@ -744,27 +819,62 @@ while true % Start plotting script selection loop
     end
     
     % ------------------------------------------------------------------------
-    % 18: 绘制下游靶板附近的电子密度、电子温度和杂质密度的极向分布
+    % 18: 绘制下游靶板附近的电子密度、电子温度、杂质密度和极向热流密度的极向分布
+    %     （与Ne脚本功能一致，增加多个可选参数）
     % ------------------------------------------------------------------------
     script_index = 18;
     if ismember(script_index, script_choices)
-        fprintf('\n--- Executing script %d: Downstream target profiles (ne, te, impurity density) ---\n', script_index);
+        fprintf('\n--- Executing script %d: Downstream target profiles (ne, te, impurity density, poloidal heat flux density) ---\n', script_index);
+        fprintf('    This script generates 2 figures per group:\n');
+        fprintf('    - Figure 1: Electron density and temperature profiles (2x2 layout)\n');
+        fprintf('    - Figure 2: Impurity density and poloidal heat flux density profiles (2x2 layout)\n');
+        fprintf('    Note: Left column = Inner Target, Right column = Outer Target\n');
         
-        % 提示用户选择图例类型
-        prompt = 'Please select legend type (d: directory name, p: predefined name): ';
+        % 提示用户选择图例类型（与Ne脚本一致）
+        prompt = 'Please select legend type (d: directory name, p: predefined name, u: unfav BT legend, m: unfav BT power legend, s: unfav BT sequence legend): ';
         legendChoice = input(prompt, 's'); % 's' 表示输入为字符串
         
         usePredefinedLegend = false; % 默认使用目录名
-        if strcmpi(legendChoice, 'p')
+        useUnfavBTLegend = false; % 默认不使用unfav BT图例
+        useUnfavBTPowerLegend = false; % 默认不使用unfav BT功率图例
+        useUnfavBTSequenceLegend = false; % 默认不使用unfav BT序列图例
+        
+        if strcmpi(legendChoice, 's')
+            useUnfavBTSequenceLegend = true;
+            fprintf('Using unfav BT sequence legend mode (unfav B_T 0.5, 1.0, 1.5, 2.0).\n');
+        elseif strcmpi(legendChoice, 'm')
+            useUnfavBTPowerLegend = true;
+            fprintf('Using unfav BT power legend mode (unfav B_T 5.5 MW, unfav B_T 7 MW).\n');
+        elseif strcmpi(legendChoice, 'u')
+            useUnfavBTLegend = true;
+            fprintf('Using unfav BT legend mode (unfav B_T 0.5, unfav B_T 1.0).\n');
+        elseif strcmpi(legendChoice, 'p')
             usePredefinedLegend = true;
+            fprintf('Using predefined legend mode (favorable B_T, unfavorable B_T, w/o drift).\n');
         elseif strcmpi(legendChoice, 'd')
             usePredefinedLegend = false; % 显式设置，虽然是默认值，但更清晰
+            fprintf('Using directory name as legend.\n');
         else
             fprintf('Invalid input, defaulting to using directory name as legend.\n');
         end
         
+        % 提示指数标签模式
+        exponentChoice = input('Use preset exponent labels? (1=yes [default], 0=no -> MATLAB auto) : ', 's');
+        useCustomExponentLabels = true;
+        if strcmpi(strtrim(exponentChoice), '0')
+            useCustomExponentLabels = false;
+            fprintf('Using MATLAB automatic exponent formatting.\n');
+        else
+            fprintf('Using preset LaTeX exponent labels for each subplot.\n');
+        end
+        
         % 调用绘图函数，根据用户选择传递参数
-        plot_downstream_pol_profiles(all_radiationData, groupDirs, 'usePredefinedLegend', usePredefinedLegend);
+        plot_downstream_pol_profiles(all_radiationData, groupDirs, ...
+            'usePredefinedLegend', usePredefinedLegend, ...
+            'useUnfavBTLegend', useUnfavBTLegend, ...
+            'useUnfavBTPowerLegend', useUnfavBTPowerLegend, ...
+            'useUnfavBTSequenceLegend', useUnfavBTSequenceLegend, ...
+            'useCustomExponentLabels', useCustomExponentLabels);
         
     end
     
@@ -3719,6 +3829,102 @@ while true % Start plotting script selection loop
         fprintf('Based on b2tfnb.F source code structure with drift_style=1.\n');
         
         plot_separatrix_outer_radial_flux_decomposition_by_charge_N(all_radiationData);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 196: OMP/IMP杂质分布（独立Figure模式，统一画布便于导出）
+    % ------------------------------------------------------------------------
+    script_index = 196;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: OMP/IMP impurity distribution - SEPARATE FIGURES MODE ---\n', script_index);
+        fprintf('Each subplot is exported as a separate figure with uniform canvas size.\n');
+        fprintf('Canvas size: 7.0 x 5.5 inches, PlotBox position: fixed for alignment.\n');
+        
+        % 询问图例类型
+        fprintf('Please select legend type:\n');
+        fprintf('  d: Use directory names as legend\n');
+        fprintf('  p: Use predefined legend (fav. B_T, unfav. B_T, w/o drift)\n');
+        fprintf('  m: Use unfav B_T power legend (5.5 MW, 7 MW)\n');
+        legendChoice = input('Enter your choice (d/p/m) [default=p]: ', 's');
+        if isempty(legendChoice)
+            legendChoice = 'p';
+        end
+        
+        if strcmpi(legendChoice, 'm')
+            usePresetLegends = false;
+            useUnfavBTPowerLegend = true;
+        elseif strcmpi(legendChoice, 'p')
+            usePresetLegends = true;
+            useUnfavBTPowerLegend = false;
+        else
+            usePresetLegends = false;
+            useUnfavBTPowerLegend = false;
+        end
+        
+        plot_OMP_IMP_impurity_distribution_separate_figs(all_radiationData, groupDirs, ...
+            'usePresetLegends', usePresetLegends, ...
+            'useUnfavBTPowerLegend', useUnfavBTPowerLegend);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 197: 下游靶板剖面（独立Figure模式，统一画布便于导出）
+    % ------------------------------------------------------------------------
+    script_index = 197;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Downstream target profiles - SEPARATE FIGURES MODE ---\n', script_index);
+        fprintf('Each subplot is exported as a separate figure with uniform canvas size.\n');
+        fprintf('Canvas size: 9.0 x 7.5 inches, PlotBox position: fixed for alignment.\n');
+        
+        % 询问图例类型
+        fprintf('Please select legend type:\n');
+        fprintf('  d: Use directory names as legend\n');
+        fprintf('  p: Use predefined legend (fav. B_T, unfav. B_T, w/o drift)\n');
+        legendChoice = input('Enter your choice (d/p) [default=p]: ', 's');
+        if isempty(legendChoice)
+            legendChoice = 'p';
+        end
+        usePredefinedLegend = strcmpi(legendChoice, 'p');
+        
+        % 询问轴范围模式
+        fprintf('Please select axis range mode:\n');
+        fprintf('  f: Fixed axis range (preset values)\n');
+        fprintf('  a: Auto axis range (MATLAB auto-adjust)\n');
+        axisModeChoice = input('Enter your choice (f/a) [default=f]: ', 's');
+        if isempty(axisModeChoice) || ~strcmpi(axisModeChoice, 'a')
+            axisMode = 'fixed';
+        else
+            axisMode = 'auto';
+        end
+        
+        plot_downstream_pol_profiles_separate_figs(all_radiationData, groupDirs, ...
+            'usePredefinedLegend', usePredefinedLegend, ...
+            'axisMode', axisMode);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 198: 综合上下游剖面（12个子图独立Figure，带序号标签，自动导出PDF）
+    % ------------------------------------------------------------------------
+    script_index = 198;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: Combined upstream/downstream profiles for export ---\n', script_index);
+        fprintf('This script generates 12 separate figures with (a)-(l) labels.\n');
+        fprintf('Legend is shown only on subplot (a). All figures are auto-exported to PDF.\n');
+        fprintf('Canvas: 7.8 x 6.0 inches, PlotBox: 5.32 x 3.5 inches.\n');
+        
+        % 询问轴范围模式
+        fprintf('Please select axis range mode:\n');
+        fprintf('  f: Fixed axis range (preset values)\n');
+        fprintf('  a: Auto axis range (MATLAB auto-adjust)\n');
+        axisModeChoice = input('Enter your choice (f/a) [default=f]: ', 's');
+        if isempty(axisModeChoice) || ~strcmpi(axisModeChoice, 'a')
+            axisMode = 'fixed';
+        else
+            axisMode = 'auto';
+        end
+        
+        plot_upstream_downstream_profiles_for_export(all_radiationData, groupDirs, ...
+            'usePredefinedLegend', true, ...
+            'axisMode', axisMode);
     end
     
     % ------------------------------------------------------------------------
