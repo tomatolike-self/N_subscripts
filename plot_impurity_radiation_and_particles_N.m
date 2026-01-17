@@ -206,6 +206,55 @@ n_part_outer_arr = [all_case_data.n_part_outer];
 n_part_sol_arr = [all_case_data.n_part_sol];
 n_part_core_arr = [all_case_data.n_part_core];
 
+%% 输出详细统计信息（用于论文文稿参考）
+fprintf('\n');
+fprintf('=======================================================================\n');
+fprintf('           DETAILED STATISTICS FOR MANUSCRIPT REFERENCE\n');
+fprintf('=======================================================================\n');
+
+for i = 1:num_cases
+    fprintf('\n--- Case %d ---\n', i);
+    
+    % 辐射统计
+    tot_rad = total_rad_arr(i);
+    n_rad = n_rad_arr(i);
+    n_rad_in = n_rad_inner_arr(i);
+    n_rad_out = n_rad_outer_arr(i);
+    n_rad_sol = n_rad_sol_arr(i);
+    n_rad_core = n_rad_core_arr(i);
+    n_rad_div = n_rad_in + n_rad_out;  % 偏滤器总辐射
+    
+    fprintf('  [RADIATION]\n');
+    fprintf('    Total radiation:       %.3f MW\n', tot_rad);
+    fprintf('    N radiation (total):   %.3f MW (%.1f%% of total)\n', n_rad, n_rad/tot_rad*100);
+    fprintf('    N rad - Inner Div:     %.3f MW (%.1f%% of N rad, %.1f%% of total)\n', n_rad_in, n_rad_in/n_rad*100, n_rad_in/tot_rad*100);
+    fprintf('    N rad - Outer Div:     %.3f MW (%.1f%% of N rad, %.1f%% of total)\n', n_rad_out, n_rad_out/n_rad*100, n_rad_out/tot_rad*100);
+    fprintf('    N rad - Divertor sum:  %.3f MW (%.1f%% of N rad, %.1f%% of total)\n', n_rad_div, n_rad_div/n_rad*100, n_rad_div/tot_rad*100);
+    fprintf('    N rad - Main SOL:      %.3f MW (%.1f%% of N rad, %.1f%% of total)\n', n_rad_sol, n_rad_sol/n_rad*100, n_rad_sol/tot_rad*100);
+    fprintf('    N rad - Core:          %.3f MW (%.1f%% of N rad, %.1f%% of total)\n', n_rad_core, n_rad_core/n_rad*100, n_rad_core/tot_rad*100);
+    
+    % 粒子统计
+    n_tot = n_total_amount_arr(i);
+    n_in = n_part_inner_arr(i);
+    n_out = n_part_outer_arr(i);
+    n_sol = n_part_sol_arr(i);
+    n_core = n_part_core_arr(i);
+    n_div = n_in + n_out;  % 偏滤器总粒子
+    
+    fprintf('  [PARTICLES]\n');
+    fprintf('    N particles (total):   %.3e\n', n_tot);
+    fprintf('    N part - Inner Div:    %.3e (%.1f%% of total)\n', n_in, n_in/n_tot*100);
+    fprintf('    N part - Outer Div:    %.3e (%.1f%% of total)\n', n_out, n_out/n_tot*100);
+    fprintf('    N part - Divertor sum: %.3e (%.1f%% of total)\n', n_div, n_div/n_tot*100);
+    fprintf('    N part - Main SOL:     %.3e (%.1f%% of total)\n', n_sol, n_sol/n_tot*100);
+    fprintf('    N part - Core:         %.3e (%.1f%% of total)\n', n_core, n_core/n_tot*100);
+    fprintf('    N part - SOL+Core:     %.3e (%.1f%% of total)\n', n_sol+n_core, (n_sol+n_core)/n_tot*100);
+end
+
+fprintf('\n=======================================================================\n');
+fprintf('                     END OF DETAILED STATISTICS\n');
+fprintf('=======================================================================\n\n');
+
 %% 绘制图1：辐射功率分布
 fig1 = figure('Name', 'N Impurity Radiation Distribution', ...
     'Color', 'w', 'Units', 'normalized', 'Position', [0.1, 0.1, 0.4, 0.6]);

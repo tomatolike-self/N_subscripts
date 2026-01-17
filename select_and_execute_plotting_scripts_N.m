@@ -110,13 +110,14 @@ while true % Start plotting script selection loop
     clear plot_potential_ExB_radial_drift_physical_grid_cellflat_gray
     clear plot_potential_physical_grid_segmented_colormap_cellflat_N
     clear plot_radiation_Cz_distribution_separate_figs
-    clear plot_radiation_Cz_distribution_simple
+    clear plot_radiation_Cz_distribution_simple_N
     clear plot_N_ion_flux_distribution_computational_grid
     clear plot_Hzeff_frad_vs_Zeff_split_figures_N
     clear plot_impurity_radiation_and_particles_N
     clear plot_OMP_IMP_impurity_distribution_separate_figs
     clear plot_downstream_pol_profiles_separate_figs
-    clear plot_upstream_downstream_profiles_for_export;  % 确保使用最新版本
+    clear plot_upstream_downstream_profiles_for_export
+    clear plot_impurity_charge_state_density_and_flow_pattern_log_scale_N  % 确保使用最新版本
     
     fprintf('\n========================================================================\n');
     fprintf('  Choose plotting scripts to execute:\n');
@@ -170,7 +171,7 @@ while true % Start plotting script selection loop
     fprintf('82: Ne source terms comprehensive analysis (source terms by charge state and region)\n');
     fprintf('83: Ne source terms regional comparison (main SOL, inner/outer divertor, and total regional comparison)\n');
     fprintf('91: Ne regional source terms bar comparison (optimized bar chart for regional total source terms)\n');
-    fprintf('97: Ne ionization rate source and poloidal stagnation point (using rsana data, Ne0+ to Ne10+)\n');
+    fprintf('97: N ionization rate source and poloidal stagnation point, physical grid (using rsana data, N0 to N7+)\n');
     fprintf('162: N ionization source on physical grid (rsana, flexible charge state selection N1+-N7+)\n');
     fprintf('188: Total N ionization source (sna) in computational grid (detailed data cursor)\n');
     fprintf('189: N ionization source (rsana) in computational grid (charge-state selectable N1+-N7+)\n');
@@ -228,6 +229,7 @@ while true % Start plotting script selection loop
     fprintf('88: Main ion (D+) flow pattern in computational grid\n');
     fprintf('95: Ne total force flow pattern in computational grid (sum of all charge states)\n');
     fprintf('96: Ne charge state force flow pattern in computational grid (supports specific charge state selection)\n');
+    fprintf('105: N ion charge state density distribution + flow pattern (computational grid, segmented scale arrows, N1+ to N7+)\n');
     fprintf('177: N ion ExB drift flux with stagnation points (linear colormap, N1+ to N7+)\n');
     fprintf('178: N ion flux distribution (computational grid, linear colormap, normalized arrows, supports total / subset sum / per-charge figures + auto/manual colorbar)\n');
     fprintf('187: N ionization source (N0->N1+) background + Total N flow pattern + Stagnation points\n');
@@ -280,7 +282,7 @@ while true % Start plotting script selection loop
     fprintf('55: Custom CSV data export (select specific cases and variables to export)\n');
     fprintf('75: Impurity flux and density comparison analysis (IDE/ODE leakage, separatrix flux, target recycling, Ne ion densities)\n');
     fprintf('77: Ne ion flux positive/negative analysis (IDE/ODE flux separation + X-point radial flux)\n');
-    fprintf('182: N impurity radiation and particle distribution (Python style replication)\n');
+    fprintf('182: N impurity radiation and particle distribution (Python style, with detailed statistics)\n');
     fprintf('199: test script\n');
     fprintf('========================================================================\n');
     fprintf('  Enter the script numbers to execute, separated by spaces (e.g., 1 3 5), or enter "all" to select all, "r" to refresh scripts, "00" to close all figures, "000" to maximize all figures, or "0" to exit:\n');
@@ -3000,27 +3002,28 @@ while true % Start plotting script selection loop
     end
     
     % ------------------------------------------------------------------------
-    % 97: Ne电离速率源项和极向速度停滞点（使用rsana数据，支持价态选择）
+    % 97: N电离速率源项和极向速度停滞点（使用rsana数据，支持价态选择）
+    % 修改原因：适配N体系，电荷态范围0-7（N0到N7+）
     % ------------------------------------------------------------------------
     script_index = 97;
     if ismember(script_index, script_choices)
-        fprintf('\n--- Executing script %d: Ne ionization rate source and poloidal stagnation point (using rsana data) ---\n', script_index);
+        fprintf('\n--- Executing script %d: N ionization rate source and poloidal stagnation point (using rsana data) ---\n', script_index);
         
         % 询问绘图范围domain
         domain = input('Which domain you wanna draw (0-whole, 1-EAST updiv, 2-EAST down-div)? ');
         
-        % 询问电离速率价态
-        fprintf('\nSelect Ne charge state for ionization rate:\n');
-        fprintf('  0: Ne0+ (neutral) ionization rate\n');
-        fprintf('  1: Ne1+ ionization rate\n');
-        fprintf('  2: Ne2+ ionization rate\n');
+        % 询问电离速率价态（N系统：0-7）
+        fprintf('\nSelect N charge state for ionization rate:\n');
+        fprintf('  0: N0 (neutral) ionization rate\n');
+        fprintf('  1: N1+ ionization rate\n');
+        fprintf('  2: N2+ ionization rate\n');
         fprintf('  ...\n');
-        fprintf('  10: Ne10+ ionization rate\n');
-        ionization_mode = input('Please enter charge state (0-10): ');
+        fprintf('  7: N7+ ionization rate\n');
+        ionization_mode = input('Please enter charge state (0-7): ');
         
-        % 验证输入
-        if isempty(ionization_mode) || ionization_mode < 0 || ionization_mode > 10 || mod(ionization_mode, 1) ~= 0
-            fprintf('Invalid input, using default charge state 0 (Ne0+).\n');
+        % 验证输入（N系统：0-7）
+        if isempty(ionization_mode) || ionization_mode < 0 || ionization_mode > 7 || mod(ionization_mode, 1) ~= 0
+            fprintf('Invalid input, using default charge state 0 (N0).\n');
             ionization_mode = 0;
         end
         
@@ -3157,6 +3160,138 @@ while true % Start plotting script selection loop
         
         % 调用新的脚本函数（N杂质体系）
         plot_ne_hzeff_new_relationship_N(all_radiationData, groupDirs, usePresetLegends, showLegendsForDirNames, useHardcodedLegends);
+    end
+    
+    % ------------------------------------------------------------------------
+    % 105: 绘制各价态杂质离子(N1+~N7+)在计算网格中的密度分布和流型图（分段映射箭头长度）
+    % ------------------------------------------------------------------------
+    script_index = 105;
+    if ismember(script_index, script_choices)
+        fprintf('\n--- Executing script %d: N ion charge state density distribution + flow pattern (segmented scale arrows) in computational grid ---\n', script_index);
+        
+        % 询问用户选择绘制模式
+        fprintf('Available plotting modes:\n');
+        fprintf('  1: Plot selected individual charge states within a user-defined range (one figure per state)\n');
+        fprintf('  2: Plot combined density + flux for a user-defined charge-state range (single figure)\n');
+        fprintf('  3: Plot total N density background + total flux (N1+ to N7+) [default]\n');
+        mode_choice = input('Please choose plotting mode (1, 2, or 3) [default=3]: ');
+        if isempty(mode_choice) || ~ismember(mode_choice, [1, 2, 3])
+            mode_choice = 3;
+        end
+        
+        default_states = 1:7;  % N体系：1-7
+        
+        % 询问流通量比例图例位置
+        fprintf('\nFlux scale legend position options:\n');
+        fprintf('  1: Top-right [default]\n');
+        fprintf('  2: Top-left\n');
+        fprintf('  3: Bottom-left\n');
+        fprintf('  4: Bottom-right\n');
+        fprintf('  5: None (Hide legend)\n');
+        legend_position_choice = input('Please choose flux scale legend position (1-5) [default=1]: ');
+        if isempty(legend_position_choice) || ~ismember(legend_position_choice, 1:5)
+            legend_position_choice = 1;
+        end
+        
+        switch legend_position_choice
+            case 2
+                flux_scale_position = 'top-left';
+            case 3
+                flux_scale_position = 'bottom-left';
+            case 4
+                flux_scale_position = 'bottom-right';
+            case 5
+                flux_scale_position = 'none';
+            otherwise
+                flux_scale_position = 'top-right';
+        end
+        fprintf('Flux scale legend will be placed at %s.\n', strrep(flux_scale_position, '-', ' '));
+        
+        % 是否使用自制colormap
+        use_custom_colormap_choice = input('Do you want to use custom colormap (mycontour.mat)? (1=yes, 0=no) [default=1]: ');
+        if isempty(use_custom_colormap_choice)
+            use_custom_colormap_choice = 1;
+        end
+        use_custom_colormap = logical(use_custom_colormap_choice);
+        
+        if use_custom_colormap
+            fprintf('Will use custom colormap from mycontour.mat\n');
+        else
+            fprintf('Will use default jet colormap\n');
+        end
+        
+        % colorbar范围
+        fprintf('\nColorbar range settings:\n');
+        fprintf('  Default range for total mode: [1e17, 1e19]\n');
+        fprintf('  Default range for single charge state mode: [1e16, 1e19]\n');
+        fprintf('  Press Enter to use default range\n');
+        clim_input = input('Enter colorbar range [min max] or press Enter for default: ', 's');
+        
+        if isempty(clim_input)
+            clim_range = [];
+            fprintf('Using default colorbar range\n');
+        else
+            clim_values = str2num(clim_input);  %#ok<ST2NM>
+            if ~isempty(clim_values) && numel(clim_values) == 2 && clim_values(1) < clim_values(2)
+                clim_range = clim_values;
+                fprintf('Using custom colorbar range: [%.2e, %.2e]\n', clim_range(1), clim_range(2));
+            else
+                clim_range = [];
+                fprintf('Invalid input. Using default colorbar range\n');
+            end
+        end
+        
+        switch mode_choice
+            case 1
+                charge_state_input = input('Enter charge state indices or range (e.g., [1 3 5] or 3:7) [default=1:7]: ');
+                if isempty(charge_state_input)
+                    charge_state_input = default_states;
+                end
+                selected_charge_states = unique(round(charge_state_input(:)'));
+                selected_charge_states = selected_charge_states(selected_charge_states >= 1 & selected_charge_states <= 7);  % N体系
+                if isempty(selected_charge_states)
+                    warning('No valid charge states provided. Using default 1:7.');
+                    selected_charge_states = default_states;
+                end
+                fprintf('Plotting individual charge states (segmented arrows) for: %s\n', mat2str(selected_charge_states));
+                plot_impurity_charge_state_density_and_flow_pattern_log_scale_N(all_radiationData, ...
+                    'mode', 'all_charge_states', ...
+                    'selected_charge_states', selected_charge_states, ...
+                    'use_custom_colormap', use_custom_colormap, ...
+                    'clim_range', clim_range, ...
+                    'flux_scale_position', flux_scale_position);
+                
+            case 2
+                range_input = input('Enter charge state range (e.g., [3 7] or 3:7) [default=1:7]: ');
+                if isempty(range_input)
+                    range_values = default_states;
+                elseif numel(range_input) == 2
+                    range_values = round(range_input(1)):round(range_input(2));
+                else
+                    range_values = unique(round(range_input(:)'));
+                end
+                range_values = range_values(range_values >= 1 & range_values <= 7);  % N体系
+                if isempty(range_values)
+                    warning('No valid charge states provided. Using default 1:7.');
+                    range_values = default_states;
+                end
+                fprintf('Plotting combined density and flow for charge states: %s\n', mat2str(range_values));
+                plot_impurity_charge_state_density_and_flow_pattern_log_scale_N(all_radiationData, ...
+                    'mode', 'total', ...
+                    'selected_charge_states', range_values, ...
+                    'use_custom_colormap', use_custom_colormap, ...
+                    'clim_range', clim_range, ...
+                    'flux_scale_position', flux_scale_position);
+                
+            case 3
+                fprintf('Plotting total N density (N1+ to N7+) and total flux\n');
+                plot_impurity_charge_state_density_and_flow_pattern_log_scale_N(all_radiationData, ...
+                    'mode', 'total', ...
+                    'selected_charge_states', default_states, ...
+                    'use_custom_colormap', use_custom_colormap, ...
+                    'clim_range', clim_range, ...
+                    'flux_scale_position', flux_scale_position);
+        end
     end
     
     % ------------------------------------------------------------------------
@@ -3663,7 +3798,7 @@ while true % Start plotting script selection loop
         clim_totrad = [5e5, 1e7];
         clim_nerad = [5e5, 1e7];
         
-        plot_radiation_Cz_distribution_simple(all_radiationData, domain, ...
+        plot_radiation_Cz_distribution_simple_N(all_radiationData, domain, ...
             'use_custom_colormap', use_custom_colormap, ...
             'cz_scale', cz_scale, ...
             'clim_totrad', clim_totrad, ...
@@ -3705,13 +3840,13 @@ while true % Start plotting script selection loop
         
         % 询问停滞点显示模式
         fprintf('Stagnation point display mode:\n');
-        fprintf('  0 = Original (keep first & last, max 2 per flux tube) [default]\n');
-        fprintf('  1 = Divertor priority (filter by divertor region)\n');
+        fprintf('  0 = Original (keep first & last, max 2 per flux tube)\n');
+        fprintf('  1 = Divertor priority (filter by divertor region) [default]\n');
         fprintf('  2 = Show ALL (no filtering)\n');
-        stag_mode_input = input('Enter mode (0/1/2) [default: 0]: ');
+        stag_mode_input = input('Enter mode (0/1/2) [default: 1]: ');
         if isempty(stag_mode_input) || ~ismember(stag_mode_input, [0, 1, 2])
-            stagnation_mode = 0;
-            fprintf('Using default mode 0 (original: first & last, max 2).\n');
+            stagnation_mode = 1;  % 默认使用偏滤器优先逻辑
+            fprintf('Using default mode 1 (divertor priority filtering).\n');
         else
             stagnation_mode = stag_mode_input;
             if stagnation_mode == 0

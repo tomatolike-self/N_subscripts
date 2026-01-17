@@ -37,8 +37,8 @@ end
 %% 全局绘图样式设置
 set(0, 'DefaultAxesFontName', 'Times New Roman');
 set(0, 'DefaultTextFontName', 'Times New Roman');
-set(0, 'DefaultAxesFontSize', 20);
-set(0, 'DefaultTextFontSize', 20);
+set(0, 'DefaultAxesFontSize', 24);   % 增大默认字体
+set(0, 'DefaultTextFontSize', 24);   % 增大默认字体
 set(0, 'DefaultTextInterpreter', 'latex');
 set(0, 'DefaultAxesTickLabelInterpreter', 'latex');
 set(0, 'DefaultLegendInterpreter', 'latex');
@@ -122,7 +122,7 @@ for i_case = 1:num_cases
         'Units', 'inches', 'Position', [1, 1, figure_width, figure_height]);
     
     %% 子图1：电子密度 ne（左侧）
-    subplot(1, 2, 1);
+    ax_ne = subplot(1, 2, 1);
     surfplot(radInfo.gmtry, ne_log);
     shading interp;
     view(2);
@@ -143,14 +143,14 @@ for i_case = 1:num_cases
     real_ticks = 10.^log_ticks / scale_factor;
     set(cb, 'Ticks', log_ticks, ...
         'TickLabels', arrayfun(@(x) sprintf('%.2f', x), real_ticks, 'UniformOutput', false), ...
-        'FontName', 'Times New Roman', 'FontSize', 14, 'TickLabelInterpreter', 'latex');
-    title(cb, ['$\times10^{', num2str(exp_max), '}$'], 'Interpreter', 'latex', 'FontSize', 14);
+        'FontName', 'Times New Roman', 'FontSize', 22, 'TickLabelInterpreter', 'latex');
+    title(cb, ['$\times10^{', num2str(exp_max), '}$'], 'Interpreter', 'latex', 'FontSize', 22);
     
     % 设置坐标轴
-    set(gca, 'FontName', 'Times New Roman', 'FontSize', 16, 'Box', 'on', 'LineWidth', 1.5);
-    xlabel('$R$ (m)', 'Interpreter', 'latex', 'FontSize', 18, 'FontWeight', 'bold');
-    ylabel('$Z$ (m)', 'Interpreter', 'latex', 'FontSize', 18, 'FontWeight', 'bold');
-    title('$n_e$ (m$^{-3}$)', 'Interpreter', 'latex', 'FontSize', 18, 'FontWeight', 'bold');
+    set(gca, 'FontName', 'Times New Roman', 'FontSize', 20, 'Box', 'on', 'LineWidth', 1.5);
+    xlabel('$R$ (m)', 'Interpreter', 'latex', 'FontSize', 22, 'FontWeight', 'bold');
+    ylabel('$Z$ (m)', 'Interpreter', 'latex', 'FontSize', 22, 'FontWeight', 'bold');
+    title('$n_e$ (m$^{-3}$)', 'Interpreter', 'latex', 'FontSize', 22, 'FontWeight', 'bold');
     axis equal;
     box on;
     
@@ -160,7 +160,7 @@ for i_case = 1:num_cases
     hold off;
     
     %% 子图2：电子温度 te（右侧）
-    subplot(1, 2, 2);
+    ax_te = subplot(1, 2, 2);
     surfplot(radInfo.gmtry, te_ev_log);
     shading interp;
     view(2);
@@ -182,8 +182,8 @@ for i_case = 1:num_cases
         % 温度值较小，直接显示原始值
         set(cb, 'Ticks', log_ticks, ...
             'TickLabels', arrayfun(@(x) sprintf('%.2f', 10^x), log_ticks, 'UniformOutput', false), ...
-            'FontName', 'Times New Roman', 'FontSize', 14, 'TickLabelInterpreter', 'latex');
-        title(cb, ' ', 'Interpreter', 'latex', 'FontSize', 14);
+            'FontName', 'Times New Roman', 'FontSize', 22, 'TickLabelInterpreter', 'latex');
+        title(cb, ' ', 'Interpreter', 'latex', 'FontSize', 22);
     else
         % 温度值较大，使用科学计数法
         exp_max = floor(log10(all_te_max));
@@ -191,15 +191,15 @@ for i_case = 1:num_cases
         real_ticks = 10.^log_ticks / scale_factor;
         set(cb, 'Ticks', log_ticks, ...
             'TickLabels', arrayfun(@(x) sprintf('%.2f', x), real_ticks, 'UniformOutput', false), ...
-            'FontName', 'Times New Roman', 'FontSize', 14, 'TickLabelInterpreter', 'latex');
-        title(cb, ['$\times10^{', num2str(exp_max), '}$'], 'Interpreter', 'latex', 'FontSize', 14);
+            'FontName', 'Times New Roman', 'FontSize', 22, 'TickLabelInterpreter', 'latex');
+        title(cb, ['$\times10^{', num2str(exp_max), '}$'], 'Interpreter', 'latex', 'FontSize', 22);
     end
     
     % 设置坐标轴
-    set(gca, 'FontName', 'Times New Roman', 'FontSize', 16, 'Box', 'on', 'LineWidth', 1.5);
-    xlabel('$R$ (m)', 'Interpreter', 'latex', 'FontSize', 18, 'FontWeight', 'bold');
-    ylabel('$Z$ (m)', 'Interpreter', 'latex', 'FontSize', 18, 'FontWeight', 'bold');
-    title('$T_e$ (eV)', 'Interpreter', 'latex', 'FontSize', 18, 'FontWeight', 'bold');
+    set(gca, 'FontName', 'Times New Roman', 'FontSize', 20, 'Box', 'on', 'LineWidth', 1.5);
+    xlabel('$R$ (m)', 'Interpreter', 'latex', 'FontSize', 22, 'FontWeight', 'bold');
+    ylabel('$Z$ (m)', 'Interpreter', 'latex', 'FontSize', 22, 'FontWeight', 'bold');
+    title('$T_e$ (eV)', 'Interpreter', 'latex', 'FontSize', 22, 'FontWeight', 'bold');
     axis equal;
     box on;
     
@@ -207,6 +207,62 @@ for i_case = 1:num_cases
     apply_domain_limits(domain, radInfo);
     
     hold off;
+    
+    %% 添加Ghost占位符（实现统一紧裁剪导出边界）
+    % =========================================================================
+    % 原理说明：
+    % 当使用MATLAB轴工具栏的"Export..."功能（紧裁剪导出）时，导出的图像边界
+    % 是根据每个子图的"外接矩形"（包含所有可见内容）来确定的。
+    %
+    % 问题：如果ne的Y轴刻度标签是"3.0"而Te的是"400"，两者宽度不同，导致
+    % 紧裁剪后的图像尺寸也不同——拼版到PPT/LaTeX时会出现对齐问题。
+    %
+    % 解决方案：在每个子图的四角外侧放置"隐形占位符"（白底白字，视觉不可见），
+    % 并设置Clipping='off'使它们参与外接矩形计算。这样所有子图的外接矩形
+    % 因为这些占位符而变得一致，紧裁剪导出后画布大小和plotbox位置都相同。
+    %
+    % 技术要点：
+    % 1) 使用与背景同色（白色）的text对象作为占位符
+    % 2) Clipping='off' 确保超出axes范围的文本仍参与边界计算
+    % 3) HandleVisibility='off' 使占位符不出现在legend或其他自动发现中
+    % 4) 占位符位置在axes四角外侧（归一化坐标），确保不遮挡数据或标签
+    %
+    % 备注：用户提到的LaTeX \phantom{}命令在纯MATLAB环境中不适用，
+    % 因为MATLAB的text对象需要实际字符来占据空间。白色字符是最可靠的方式。
+    % =========================================================================
+    
+    % 背景色与占位符颜色（白色）
+    figBgColor = [1 1 1];  % 白色背景
+    ghostFontSize = 22;    % 与标签字体大小相近，确保占位效果
+    
+    % 遍历两个子图，添加ghost占位符
+    axList = [ax_ne, ax_te];
+    for ax = axList
+        % 设置ActivePositionProperty确保axes尺寸固定
+        set(ax, 'ActivePositionProperty', 'position');
+        
+        % Ghost占位符公共参数
+        ghostArgs = {'Units', 'normalized', 'HandleVisibility', 'off', ...
+            'Clipping', 'off', 'Interpreter', 'none', ...
+            'FontName', 'Times New Roman', 'FontSize', ghostFontSize, ...
+            'Color', figBgColor};
+        
+        % 左侧占位符（扩展左边界）
+        text(ax, -0.30, 0.02, '00000', ghostArgs{:}, ...
+            'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom');
+        
+        % 右侧占位符（扩展右边界）- 主要用于平衡colorbar
+        text(ax, 1.25, 0.02, '00000', ghostArgs{:}, ...
+            'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom');
+        
+        % 底部占位符（扩展下边界）
+        text(ax, 0.02, -0.25, '0', ghostArgs{:}, ...
+            'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+        
+        % 顶部占位符（扩展上边界）- 用于平衡colorbar标题
+        text(ax, 0.02, 1.12, '0', ghostArgs{:}, ...
+            'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom');
+    end
     
     %% 保存Figure
     % 使用算例序号+算例名生成唯一文件名

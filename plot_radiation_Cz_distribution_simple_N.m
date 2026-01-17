@@ -1,4 +1,4 @@
-function plot_radiation_Cz_distribution_simple(all_radiationData, domain, varargin)
+function plot_radiation_Cz_distribution_simple_N(all_radiationData, domain, varargin)
 % =========================================================================
 % plot_radiation_Cz_distribution_simple - 简化版辐射与N杂质浓度分布绘图
 % =========================================================================

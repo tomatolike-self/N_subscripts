@@ -74,7 +74,7 @@ if nargin < 3 || isempty(show_flux_scale)
 end
 
 if nargin < 4 || isempty(stagnation_mode)
-    stagnation_mode = 0;
+    stagnation_mode = 1;  % 默认使用偏滤器优先逻辑
 end
 
 %% 主循环：处理每个算例
@@ -109,7 +109,7 @@ for i_case = 1:length(all_radiationData)
     %% 创建图形
     fig_title = sprintf('N Ionization Source & Flow Pattern - %s', dirName);
     fig = figure('Name', fig_title, 'NumberTitle', 'off', 'Color', 'w', ...
-        'Units', 'inches', 'Position', [0.5, 0.5, 22, 9]);
+        'Units', 'inches', 'Position', [0.5, 0.5, 24, 9]);
     
     ax = axes(fig);
     hold(ax, 'on');

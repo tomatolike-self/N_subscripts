@@ -53,8 +53,8 @@ OVERLAY_LINE_WIDTH = 3.0;
 SEPARATRIX_WIDTH = 1.5;
 
 % 极向网格索引配置（EAST 98x28网格）
-INDICES_INNER = [74, 77, 82, 97];  % 内偏滤器关注位置
-INDICES_OUTER = [2, 19, 24, 25];   % 外偏滤器关注位置
+INDICES_INNER = [74, 77, 87, 97];  % 内偏滤器关注位置
+INDICES_OUTER = [2, 12, 24, 25];   % 外偏滤器关注位置
 
 % 配色方案
 COLORS_OUTER = [0.05, 0.35, 0.90; 0.00, 0.55, 0.75; 0.00, 0.72, 0.50; 0.00, 0.85, 0.30];
