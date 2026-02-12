@@ -178,8 +178,10 @@ function plot_N_ExB_drift_flow_pattern(all_radiationData)
         C = getGridRegionConstants();
         isep_idx = C.separatrix_line; inner_div_end=C.inner_div_end; omp_idx=C.omp_idx; imp_idx=C.imp_idx; outer_div_start=C.outer_div_start;
         % 分隔线 (位于单元边界 => index + 0.5)
-        plot(ax,[inner_div_end+0.5 inner_div_end+0.5],[0.5 ny_plot+0.5],'k--','LineWidth',1.0);
-        plot(ax,[outer_div_start-0.5 outer_div_start-0.5],[0.5 ny_plot+0.5],'k--','LineWidth',1.0);
+        plot(ax,[inner_div_end+0.5 inner_div_end+0.5],[0.5, C.separatrix_line+0.5],'k-','LineWidth',1.0);
+        plot(ax,[inner_div_end+0.5 inner_div_end+0.5],[C.separatrix_line+0.5, ny_plot+0.5],'k--','LineWidth',1.0);
+        plot(ax,[outer_div_start-0.5 outer_div_start-0.5],[0.5, C.separatrix_line+0.5],'k-','LineWidth',1.0);
+        plot(ax,[outer_div_start-0.5 outer_div_start-0.5],[C.separatrix_line+0.5, ny_plot+0.5],'k--','LineWidth',1.0);
         plot(ax,[omp_idx+0.5 omp_idx+0.5],[0.5 ny_plot+0.5],'k--','LineWidth',1.0);
         plot(ax,[imp_idx+0.5 imp_idx+0.5],[0.5 ny_plot+0.5],'k--','LineWidth',1.0);
         plot(ax,[0.5 nx_plot+0.5],[isep_idx+0.5 isep_idx+0.5],'k-','LineWidth',1.5);

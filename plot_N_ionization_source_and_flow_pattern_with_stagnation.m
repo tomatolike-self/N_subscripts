@@ -151,8 +151,10 @@ for i_case = 1:length(all_radiationData)
     plot_stagnation_points(ax, plasma, nx_orig, ny_orig, nx_plot, ny_plot, stagnation_mode);
     
     %% 添加区域标签和分隔线
-    h1 = plot(ax, [INNER_DIV_END+0.5, INNER_DIV_END+0.5], [0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
-    h2 = plot(ax, [OUTER_DIV_START-0.5, OUTER_DIV_START-0.5], [0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
+    h1 = plot(ax, [INNER_DIV_END+0.5, INNER_DIV_END+0.5], [0.5, SEPARATRIX_LINE+0.5], 'k-', 'LineWidth', 1.0, 'HandleVisibility', 'off');
+    h1 = plot(ax, [INNER_DIV_END+0.5, INNER_DIV_END+0.5], [SEPARATRIX_LINE+0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
+    h2 = plot(ax, [OUTER_DIV_START-0.5, OUTER_DIV_START-0.5], [0.5, SEPARATRIX_LINE+0.5], 'k-', 'LineWidth', 1.0, 'HandleVisibility', 'off');
+    h2 = plot(ax, [OUTER_DIV_START-0.5, OUTER_DIV_START-0.5], [SEPARATRIX_LINE+0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
     h3 = plot(ax, [OMP_IDX+0.5, OMP_IDX+0.5], [0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
     h4 = plot(ax, [IMP_IDX+0.5, IMP_IDX+0.5], [0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
     h5 = plot(ax, [0.5, nx_plot+0.5], [SEPARATRIX_LINE+0.5, SEPARATRIX_LINE+0.5], 'k-', 'LineWidth', 1.5);

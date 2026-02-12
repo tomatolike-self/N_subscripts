@@ -160,8 +160,10 @@ function plot_Ne_ExB_drift_flow_pattern(all_radiationData)
             imp_pol_idx_fixed       = 58;
             outer_div_pol_start_fixed = 73;
 
-            plot(ax, [inner_div_pol_end_fixed + 1, inner_div_pol_end_fixed + 1], [1, ny_plot], 'k--', 'LineWidth', 1.0);
-            plot(ax, [outer_div_pol_start_fixed, outer_div_pol_start_fixed], [1, ny_plot], 'k--', 'LineWidth', 1.0);
+            plot(ax, [inner_div_pol_end_fixed + 1, inner_div_pol_end_fixed + 1], [1, isep_idx_fixed+1], 'k-', 'LineWidth', 1.0);
+            plot(ax, [inner_div_pol_end_fixed + 1, inner_div_pol_end_fixed + 1], [isep_idx_fixed+1, ny_plot], 'k--', 'LineWidth', 1.0);
+            plot(ax, [outer_div_pol_start_fixed, outer_div_pol_start_fixed], [1, isep_idx_fixed+1], 'k-', 'LineWidth', 1.0);
+            plot(ax, [outer_div_pol_start_fixed, outer_div_pol_start_fixed], [isep_idx_fixed+1, ny_plot], 'k--', 'LineWidth', 1.0);
             plot(ax, [omp_pol_idx_fixed, omp_pol_idx_fixed], [1, ny_plot], 'k--', 'LineWidth', 1.0);
             plot(ax, [imp_pol_idx_fixed, imp_pol_idx_fixed], [1, ny_plot], 'k--', 'LineWidth', 1.0);
             plot(ax, [1, nx_plot], [isep_idx_fixed + 1, isep_idx_fixed + 1], 'k-', 'LineWidth', 1.5);

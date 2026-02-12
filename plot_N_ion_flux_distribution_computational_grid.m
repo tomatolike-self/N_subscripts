@@ -450,8 +450,10 @@ if nx_plot > 1 && ny_plot > 1
 end
 
 %% 添加区域分隔线
-plot(ax, [INNER_DIV_END + 0.5, INNER_DIV_END + 0.5], [0.5, ny_plot + 0.5], 'k--', 'LineWidth', 1.0);
-plot(ax, [OUTER_DIV_START - 0.5, OUTER_DIV_START - 0.5], [0.5, ny_plot + 0.5], 'k--', 'LineWidth', 1.0);
+plot(ax, [INNER_DIV_END + 0.5, INNER_DIV_END + 0.5], [0.5, SEPARATRIX_LINE+0.5], 'k-', 'LineWidth', 1.0);
+plot(ax, [INNER_DIV_END + 0.5, INNER_DIV_END + 0.5], [SEPARATRIX_LINE+0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
+plot(ax, [OUTER_DIV_START - 0.5, OUTER_DIV_START - 0.5], [0.5, SEPARATRIX_LINE+0.5], 'k-', 'LineWidth', 1.0);
+plot(ax, [OUTER_DIV_START - 0.5, OUTER_DIV_START - 0.5], [SEPARATRIX_LINE+0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
 plot(ax, [OMP_IDX + 0.5, OMP_IDX + 0.5], [0.5, ny_plot + 0.5], 'k--', 'LineWidth', 1.0);
 plot(ax, [IMP_IDX + 0.5, IMP_IDX + 0.5], [0.5, ny_plot + 0.5], 'k--', 'LineWidth', 1.0);
 plot(ax, [0.5, nx_plot + 0.5], [SEPARATRIX_LINE + 0.5, SEPARATRIX_LINE + 0.5], 'k-', 'LineWidth', 1.5);

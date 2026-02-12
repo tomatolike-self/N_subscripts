@@ -243,8 +243,10 @@ end
 
 function drawRegionGuides(ax, nx_plot, ny_plot, C)
 % 绘制区域分界线与标签
-plot(ax, [C.inner_div_end + 0.5, C.inner_div_end + 0.5], [0.5, ny_plot + 0.5], 'k--', 'LineWidth', 1.0);
-plot(ax, [C.outer_div_start - 0.5, C.outer_div_start - 0.5], [0.5, ny_plot + 0.5], 'k--', 'LineWidth', 1.0);
+plot(ax, [C.inner_div_end + 0.5, C.inner_div_end + 0.5], [0.5, C.separatrix_line+0.5], 'k-', 'LineWidth', 1.0);
+plot(ax, [C.inner_div_end + 0.5, C.inner_div_end + 0.5], [C.separatrix_line+0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
+plot(ax, [C.outer_div_start - 0.5, C.outer_div_start - 0.5], [0.5, C.separatrix_line+0.5], 'k-', 'LineWidth', 1.0);
+plot(ax, [C.outer_div_start - 0.5, C.outer_div_start - 0.5], [C.separatrix_line+0.5, ny_plot+0.5], 'k--', 'LineWidth', 1.0);
 plot(ax, [C.omp_idx + 0.5, C.omp_idx + 0.5], [0.5, ny_plot + 0.5], 'k--', 'LineWidth', 1.0);
 plot(ax, [C.imp_idx + 0.5, C.imp_idx + 0.5], [0.5, ny_plot + 0.5], 'k--', 'LineWidth', 1.0);
 plot(ax, [0.5, nx_plot + 0.5], [C.separatrix_line + 0.5, C.separatrix_line + 0.5], 'k-', 'LineWidth', 1.5);
